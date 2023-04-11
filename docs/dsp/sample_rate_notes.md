@@ -6,11 +6,11 @@ Because each receiver is sampling at a rate of $f_s$ they can only measure arriv
 
 The speed of light is $c=3\times 10^8$ m/s. Then the transmit signal can be expected to travel a distance of $1$ meter in $\Delta t=\frac{1}{3\times 10^8}\frac{m}{m/s} \approx 3.33$ ns. The https://kb.ettus.com/About_USRP_Bandwidths_and_Sampling_Rates sample rate of the USRP radios is 100-200 MHz which corresponds to a sampling time of  $5$ to $10$ ns. *The accuracy of the timestamps taken by each receiver is limited by the sampling rate of the receiver.* We expect our time-stamps to be accurate with a range of  $5$ to $10$ ns. 
 
-![[image1.jpg]]
+![[./images/image1.jpg]]
 
 Then we can define the time difference of arrival (TDOA) as
 $$TDOA = |t_2-t_1|$$
-$$ TDOA = \left|\frac{d_2}{c}-\frac{d_1}{c}\right| $$
+$$TDOA = \left|\frac{d_2}{c}-\frac{d_1}{c}\right|$$
 $$TDOA = \left|\frac{d_2-d_1}{c}\right|$$
 Where the value of $d_2-d_1$ is commonly referred to as the Range Difference (RD) in literature. 
 
