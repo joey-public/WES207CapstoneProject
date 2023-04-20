@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/vsaah/workspace/capstone/code/usrp/sample_to_file/rx_samples_to_file.cpp
+uhd/exception.hpp
+-
+uhd/types/tune_request.hpp
+-
+uhd/usrp/multi_usrp.hpp
+-
+uhd/utils/safe_main.hpp
+-
+uhd/utils/thread.hpp
+-
+boost/format.hpp
+-
+boost/lexical_cast.hpp
+-
+boost/program_options.hpp
+-
+chrono
+-
+complex
+-
+csignal
+-
+fstream
+-
+iostream
+-
+thread
+-
+
