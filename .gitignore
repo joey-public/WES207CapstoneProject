@@ -1,1 +1,8 @@
 .obsidian/
+
+# Executables
+*.exe
+*.out
+*.app
+**/bin
+**/builds
