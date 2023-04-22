@@ -1,3 +1,0 @@
-/home/vsaah/workspace/capstone/code/usrp/sample_to_file/build/CMakeFiles/rebuild_cache.dir
-/home/vsaah/workspace/capstone/code/usrp/sample_to_file/build/CMakeFiles/edit_cache.dir
-/home/vsaah/workspace/capstone/code/usrp/sample_to_file/build/CMakeFiles/rx_samples_to_file.dir
