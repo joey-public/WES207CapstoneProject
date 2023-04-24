@@ -1,8 +1,3 @@
 .obsidian/
-
-# Executables
-*.exe
-*.out
-*.app
-**/bin
-**/builds
+build/
+.ipynb_checkpoints/
