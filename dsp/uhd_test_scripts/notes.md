@@ -1,0 +1,1 @@
+https://kb.ettus.com/Synchronizing_USRP_Events_Using_Timed_Commands_in_UHD

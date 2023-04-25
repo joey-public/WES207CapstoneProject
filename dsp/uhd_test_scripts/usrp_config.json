@@ -1,0 +1,8 @@
+"settings" : {
+    "sample_time": 3,
+    "center_freq": 100e6,
+    "sample_rate": 1e6,
+    "gain" : 10,
+    "clok_source": 0,
+    "time_source": 0
+}
