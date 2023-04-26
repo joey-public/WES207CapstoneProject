@@ -43,7 +43,6 @@ end
 
 t = dist/c; %times of arrival
 
-
 %% Optionally, add noise
 n = sigma*randn(numRec,1);
 n_time = n/c;
