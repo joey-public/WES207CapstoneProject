@@ -1,15 +1,24 @@
-include <iostream>
-inclide <thread>
+#include <iostream>
+#include <thread>
+#include <chrono>
 
-void DoWork()
+// Function to be executed in a separate thread
+void threadFunction()
 {
+    std::cout << "Thread function started" << std::endl;
+    // Do some work
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    std::cout << "Thread function finished" << std::endl;
 }
 
 int main()
 {
-    std::thread worker(DoWork);
+    // Create a thread object and pass the function as an argument
+    std::thread t(threadFunction);
 
-    worker.join();
+    // Wait for the thread to finish
+    t.join();
 
-    std::cin.get();
+    std::cout << "Main function finished" << std::endl;
+    return 0;
 }
