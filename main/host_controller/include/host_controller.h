@@ -11,8 +11,4 @@ using std::string;
 using std::cout;
 using std::endl;
 
-
-string read_(tcp::socket & socket);
-void send_(tcp::socket & socket, const string& message);
-
 #endif
