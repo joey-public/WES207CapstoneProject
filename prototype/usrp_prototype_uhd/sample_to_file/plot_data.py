@@ -47,6 +47,6 @@ plt.title("Tx Sample Data")
 plt.xlabel("Sample Number")
 plt.ylabel("Amplitude")
 plt.legend()
-plt.savefig('text.jpeg')
+plt.savefig('test.jpeg')
 
 plt.show()

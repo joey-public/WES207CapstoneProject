@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # define the path of the binary file
-file_path = './data/20230429_dist_no_agc.dat' 
+file_path = 'test.dat' 
+name = 'test'
 
 #read data from binary file into an array of type int16 
 def read_binary_file_int16(file_path, num_chunks = -1):
@@ -46,6 +47,6 @@ plt.title("Tx Sample Data")
 plt.xlabel("Sample Number")
 plt.ylabel("Amplitude")
 plt.legend()
-plt.save_fig('./data/images/{}.jpeg'.format(name))
+plt.savefig('test.jpeg')
 
 plt.show()
