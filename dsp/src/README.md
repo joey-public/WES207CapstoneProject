@@ -20,8 +20,6 @@ graph TD
 A[Initialize USRP] --> B(Configure USRP)
 B --> C(Start Threads)
 C --> D(Wait for 'ESC' keypress)
-D --> E(Stop streaming)
-E --> F(Release USRP resources)
 C --> G(Start streaming)
 C --> H(Processing thread)
 C --> I(Networking thread)
