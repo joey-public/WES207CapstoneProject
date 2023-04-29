@@ -22,5 +22,7 @@ B --> C(Start streaming)
 C --> D(Wait for 'ESC' keypress)
 D --> E(Stop streaming)
 E --> F(Release USRP resources)
+C --> G(Processing thread)
+C --> H(Networking thread)
 ```
 
