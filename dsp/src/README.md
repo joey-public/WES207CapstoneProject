@@ -27,6 +27,6 @@ E --> I(Wait for threads to join)
 F --> I
 G --> I
 I --> J(send data packet to host controller)
-J --> D
+J --> B
 ```
 
