@@ -7,6 +7,7 @@ note I also use the gnuplot library to help me visualize what I am doing.
 to install gnuplot use these commands:
 
 ## Host Application Flowchart
+
 ```
 sudo apt-get install gnuplot
 sudo apt-get install libgnuplot-iostream-dev
