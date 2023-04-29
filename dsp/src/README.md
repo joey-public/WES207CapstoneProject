@@ -18,11 +18,12 @@ sudo apt-get install libgnuplot-iostream-dev
 ```mermaid
 graph TD
 A[Initialize USRP] --> B(Configure USRP)
-B --> C(Start streaming)
+B --> C(Start Threads)
 C --> D(Wait for 'ESC' keypress)
 D --> E(Stop streaming)
 E --> F(Release USRP resources)
-C --> G(Processing thread)
-C --> H(Networking thread)
+C --> G(Start streaming)
+C --> H(Processing thread)
+C --> I(Networking thread)
 ```
 
