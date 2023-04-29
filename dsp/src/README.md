@@ -29,4 +29,3 @@ G --> I
 I --> J(send data packet to host controller)
 J --> B
 ```
-
