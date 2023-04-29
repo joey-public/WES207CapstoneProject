@@ -15,10 +15,12 @@ sudo apt-get install libgnuplot-iostream-dev
  #include <gnuplot-iostream.h>
  ```
 
+```mermaid
 graph TD
 A[Initialize USRP] --> B(Configure USRP)
 B --> C(Start streaming)
 C --> D(Wait for 'ESC' keypress)
 D --> E(Stop streaming)
 E --> F(Release USRP resources)
+```
 
