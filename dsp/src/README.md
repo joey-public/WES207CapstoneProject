@@ -6,6 +6,7 @@ note I also use the gnuplot library to help me visualize what I am doing.
 
 to install gnuplot use these commands:
 
+## Host Application Flowchart
 ```
 sudo apt-get install gnuplot
 sudo apt-get install libgnuplot-iostream-dev
@@ -29,3 +30,17 @@ G --> I
 I --> J(send data packet to host controller)
 J --> B
 ```
+
+## Data Processing Thread Flowchart
+
+```mermaid
+graph TD
+A[Start Data Processing Thread] --> B(Recieve Magnitude Data from Stream Thread)
+B --> C{Data Above Threshold?}
+C -- No --> B
+C -- Yes --> D[Dump N samples into Processing Buffer]
+D --> E(Process Data)
+E --> F(Save Results to packet)
+```
+style C fill:#fff,stroke:#000,stroke-width:2px,scale:0.8;
+
