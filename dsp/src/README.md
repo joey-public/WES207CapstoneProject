@@ -25,5 +25,9 @@ E --> F(Release USRP resources)
 C --> G(Start streaming)
 C --> H(Processing thread)
 C --> I(Networking thread)
+D --> J(Wait for threads to join)
+G --> J
+H --> J
+I --> J
 ```
 
