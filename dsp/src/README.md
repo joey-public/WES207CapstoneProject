@@ -21,8 +21,8 @@ A[Initialize USRP] --> B(wait for start message from host controller)
 B --> C(synch to GPS)
 C --> D(Start Threads)
 D --> E(Wait for 'ESC' keypress)
-D --> G(Start streaming)
-C --> H(Processing thread)
+D --> F(Start streaming)
+D --> G(Processing thread)
 D --> I(Wait for threads to join)
 G --> I
 H --> I
