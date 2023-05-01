@@ -1,145 +1,61 @@
-#include "host_controller.h"
-//
-// server.cpp
-// ~~~~~~~~~~
-//
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-
-#include <ctime>
 #include <iostream>
-#include <string>
-#include <boost/bind/bind.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/asio.hpp>
+#include<boost/asio.hpp>
+#include<host_controller.h>
 
-using boost::asio::ip::tcp;
-
-std::string make_daytime_string()
+int main(int argc, char* argv[])
 {
-  using namespace std; // For time_t, time and ctime;
-  time_t now = time(0);
-  return ctime(&now);
-}
-
-class tcp_connection
-  : public boost::enable_shared_from_this<tcp_connection>
-{
-public:
-  typedef boost::shared_ptr<tcp_connection> pointer;
-  static pointer create(boost::asio::io_context& io_context)
-  {
-    return pointer(new tcp_connection(io_context));
-  }
-
-  tcp::socket& socket()
-  {
-    return socket_;
-  }
-
-  void start()
-  {
-    socket_.async_read_some(
-        boost::asio::buffer(data, max_length),
-        boost::bind(&tcp_connection::handle_read,
-                    shared_from_this(),
-                    boost::asio::placeholders::error,
-                    boost::asio::placeholders::bytes_transferred));
-
-      socket_.async_write_some(
-        boost::asio::buffer(message, max_length),
-        boost::bind(&tcp_connection::handle_write,
-                  shared_from_this(),
-                  boost::asio::placeholders::error,
-                  boost::asio::placeholders::bytes_transferred));
-  }
-
-private:
-  std::string message="Hello From Server!";
-  enum { max_length = 1024 };
-  char data[max_length];
-
-  tcp_connection(boost::asio::io_context& io_context)
-    : socket_(io_context)
-  {
-  }
-
-  void handle_read(const boost::system::error_code& err, size_t bytes_transferred)
-  {
-    if (!err) {
-         cout << data << endl;
-    } else {
-         std::cerr << "error: " << err.message() << std::endl;
-         socket_.close();
-    }
-  }
-  void handle_write(const boost::system::error_code& err, size_t bytes_transferred)
-  {
-    if (!err) {
-       cout << "Server sent Hello message!"<< endl;
-    } else {
-       std::cerr << "error: " << err.message() << endl;
-       socket_.close();
-    }
-  }
-
-
-  tcp::socket socket_;
-  std::string message_;
-};
-
-class tcp_server
-{
-public:
-  tcp_server(boost::asio::io_context& io_context)
-    : io_context_(io_context),
-      acceptor_(io_context, tcp::endpoint(tcp::v4(), 33334))
-  {
-    start_accept();
-  }
-
-private:
-  void start_accept()
-  {
-    tcp_connection::pointer new_connection =
-      tcp_connection::create(io_context_);
-
-    acceptor_.async_accept(new_connection->socket(),
-        boost::bind(&tcp_server::handle_accept, this, new_connection,
-          boost::asio::placeholders::error));
-  }
-
-  void handle_accept(tcp_connection::pointer new_connection,
-      const boost::system::error_code& error)
-  {
-    if (!error)
+    try 
     {
-      new_connection->start();
+        boost::asio::io_context io_context;
+        Server server;
+
+        //Start the server
+        server.start();
+
+        // Wait for all clients to connect
+        while (server.get_connected_clients().size() < 2) 
+        {
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+
+        // start the localization thread
+        std::thread localization_thread(&Server::run_localization, &server);
+
+        // handle control commands from the console
+        std::string command;
+        while (std::getline(std::cin, command)) 
+        {
+            if (command == "configure_usrp" || command == "synchronize_pps" || command == "start_streaming" || command == "stop_streaming") 
+            {
+                server.broadcast_control_command(command);
+            }
+            else if(command == "disconnect")
+            {
+                //wait for all connections to be closed before exiting
+
+                // Stop streaming and disconnect clients
+                for (auto& client : server.get_connected_clients()) 
+                {
+                  std::cout << "Stopping streaming for client " << client << std::endl;
+                  server.send_control_command(client, "stop_streaming arg1 arg2");
+                  server.disconnect_client(client);
+                }
+            }
+            else
+            {
+              std::cout << "Unknown command \"" << command << "\"" << std::endl;
+            }
+        }
+          // Join the localization thread
+          localization_thread.join();
+
+    } 
+    catch (std::exception& e) 
+    {
+        std::cerr << "Exception: " << e.what() << std::endl;
     }
 
-    start_accept();
-  }
-
-  boost::asio::io_context& io_context_;
-  tcp::acceptor acceptor_;
-};
-
-int main()
-{
-  try
-  {
-    boost::asio::io_context io_context;
-    tcp_server server(io_context);
-    io_context.run();
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
-
-  return 0;
+    return 0;
 }
+
+
