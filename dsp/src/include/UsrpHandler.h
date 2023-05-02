@@ -11,7 +11,7 @@
 #include <uhd/types/tune_request.hpp>
 //boost includes
 #include <boost/program_options.hpp>
-#include <boost/format.hpp>
+//#include <boost/format.hpp>
 #include <boost/thread.hpp>
 
 class UsrpHandler
@@ -33,10 +33,29 @@ class UsrpHandler
         uhd::usrp::multi_usrp::sptr usrp {};
 
     public: //public methods
-        void initilize();
-        
-        void set_clock_source(std::string r);
-        std::string get_clock_source();
+        void initilize(std::string ipaddr);
+        uhd::usrp::multi_usrp::sptr init_usrp(std::string ipaddr);
+
+        //setters 
+        void set_ip_addr(std::string ip);
+        void set_subdev(std::string sd);
+        void set_clock_ref(std::string cs);
+        void set_time_ref(std::string ts);
+        void set_ant(std::string a);
+        void set_sample_rate(double fs);
+        void set_center_freq(double fc);
+        void set_bw(double b);
+        void set_gain(double g);
+        //getters
+        std::string get_ip_addr();
+        std::string get_subdev();
+        std::string get_ant();
+        std::string get_clock_ref();
+        std::string get_time_ref();
+        double get_sample_rate();
+        double get_center_freq();
+        double get_gain();
+        double get_bw();
 };
 
 #endif

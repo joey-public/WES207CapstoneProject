@@ -27,9 +27,10 @@ int main()
     std::cout << "Host Application Launched" << std::endl;
     std::cout << "Boost Version: " << BOOST_VERSION << std::endl;
     
+    std::string ip = "192.168.11.2";
     UsrpHandler my_usrp{};
-    my_usrp.initilize();
-    std::cout << my_usrp.get_clock_source() << std::endl;
+    my_usrp.initilize(ip);
+    std::cout << my_usrp.get_clock_ref() << std::endl;
     
     constexpr int ESC_KEY = 27;
     

@@ -1,5 +1,18 @@
 # DSP source code
 
+## Build Instructions
+```
+mkdir build
+cd build
+cmake ../
+make
+```
+
+## Run instructions
+```
+./build/main
+```
+
 Here I will test dsp algorithms using the UHD c++ api. 
 
 note I also use the gnuplot library to help me visualize what I am doing. 
