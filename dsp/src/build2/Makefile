@@ -1,10 +1,10 @@
 CXX=g++
 CXXFLAGS=-std=c++11 -Wall -Wextra -pedantic
-LDFLAGS=-lboost_program_options -lboost_system -lboost_thread -lboost_filesystem -lboost_regex -luhd
+LDFLAGS=-lboost_thread -lboost_atomic -lpthread
 
-SRC_FILES=main.cpp
+SRC_FILES=../main.cpp
 OBJ_FILES=$(SRC_FILES:.cpp=.o)
-EXECUTABLE=program_name
+EXECUTABLE=main
 
 all: $(EXECUTABLE)
 

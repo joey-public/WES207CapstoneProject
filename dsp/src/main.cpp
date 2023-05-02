@@ -1,7 +1,11 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
-#include <atomic>
+#include <boost/thread.hpp>
+#include <boost/atomic.hpp>
+#include <boost/version.hpp>
+
+#include "include/UsrpHandler.h"
+
+boost::atomic<bool> stop_streaming(false);
 
 void streamingThread()
 {
@@ -18,29 +22,33 @@ void processingThread()
     std::cout << "Processing Thread Finished" << std::endl;
 }
 
-int UHD_SAFE_MAIN()
+int main()
 {
     std::cout << "Host Application Launched" << std::endl;
+    std::cout << "Boost Version: " << BOOST_VERSION << std::endl;
+    
+    UsrpHandler my_usrp{};
+    my_usrp.initilize();
+    std::cout << my_usrp.get_clock_source() << std::endl;
     
     constexpr int ESC_KEY = 27;
-
-    std::atomic<bool> stop_streaming(false);
     
-    std::thread s_thread(streamingThread);
-    std::thread p_thread(processingThread);
-    std::cout << "Press 'ESC' to stop streaming..." << std::endl;
+//    boost::thread s_thread(streamingThread);
+//    boost::thread p_thread(processingThread);
 
-    while (true) {
-        if (std::cin.get() == ESC_KEY) { // 27 is the ASCII code for 'ESC'
-            stop_streaming = true;
-            break;
-        }
-    }
-
-    s_thread.join();
-    p_thread.join();
+//    std::cout << "Press 'ESC' to stop streaming..." << std::endl;
+//    while (true) {
+//        if (std::cin.get() == ESC_KEY) { // 27 is the ASCII code for 'ESC'
+//            stop_streaming = true;
+//            break;
+//        }
+//        else{std::cout << std::cin.get() << std::endl;}
+//    }
+//
+//    s_thread.join();
+//    p_thread.join();
 
     std::cout << "Host Application ended" << std::endl;
 
-    return EXIT_SUCESS;
+    return 0;
 }
