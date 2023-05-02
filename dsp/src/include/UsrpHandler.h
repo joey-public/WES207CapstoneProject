@@ -17,10 +17,11 @@
 class UsrpHandler
 {
     private: //instance variables
-        std::string ip_addr {"addr=192.168.10.2"};
+        std::string ip_addr {"addr=192.168.11.2"};
         std::string subdev {"A:0"};
         std::string ant {"TX/RX"};
-        std::string ref {"internal"};
+        std::string clock_ref {"internal"};
+        std::string time_ref{"none"};
 
         double sample_rate {1e6};
         double center_freq {915e6};

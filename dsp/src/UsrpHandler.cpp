@@ -9,8 +9,8 @@
 void UsrpHandler::initilize()
 {
     this->usrp = uhd::usrp::multi_usrp::make(this->ip_addr);
-    this->usrp->set_clock_source(this->ref);
-    this->usrp->set_time_source(this->ref);
+    this->usrp->set_clock_source(this->clock_ref);
+    this->usrp->set_time_source(this->time_ref);
     this->usrp->set_rx_subdev_spec(this->subdev);
     this->usrp->set_rx_rate(this->sample_rate);
     uhd::tune_request_t tune_request(this->center_freq);
@@ -35,5 +35,5 @@ void UsrpHandler::set_clock_source(std::string r)
 //getters
 std::string UsrpHandler::get_clock_source()
 {
-    return this->ref;
+    return this->clock_ref;
 }
