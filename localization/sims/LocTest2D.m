@@ -43,6 +43,7 @@ end
 
 t = dist/c; %times of arrival
 
+
 %% Optionally, add noise
 n = sigma*randn(numRec,1);
 n_time = n/c;
@@ -86,6 +87,7 @@ for k = 1:numRec
 end
 plot(x,y,'x','Color','r','MarkerSize',12,'LineWidth',2)
 hold off
+grid on
 grid minor
 
 %% Solve equations to get estimated location
@@ -142,12 +144,16 @@ loc_est2(1) = loc_est2(1)+rec(idx).x;
 loc_est2(2) = loc_est2(2)+rec(idx).y;
 loc_est2(3) = loc_est2(3)+rec(idx).z;
 
+%This produces 2 location estimates due to the quadratic equation
+%Through 100 tests, the first was more accurate 100% of the time
+%Going with that for now
+
 figure(1)
 hold on
 plot(loc_est1(1),loc_est1(2),'o','Color','k','MarkerSize',12,'LineWidth',2)
-plot(loc_est2(1),loc_est2(2),'o','Color','k','MarkerSize',12,'LineWidth',2)
+%plot(loc_est2(1),loc_est2(2),'o','Color','b','MarkerSize',12,'LineWidth',2)
 hold off
 
 %error in meters
 err1 = sqrt((loc_est1(1)-x)^2+(loc_est1(2)-y)^2)
-err2 = sqrt((loc_est2(1)-x)^2+(loc_est2(2)-y)^2)
+% err2 = sqrt((loc_est2(1)-x)^2+(loc_est2(2)-y)^2)
