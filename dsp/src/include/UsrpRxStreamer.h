@@ -33,7 +33,7 @@ class UsrpRxStreamer
     private: //private methods
         void _preprocess_rx_samples(const uhd::rx_metadata_t& md, 
                                     const std::vector<std::complex<float>>& samples); 
-        void _handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count);
+        int _handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count);
 };
 
 #endif

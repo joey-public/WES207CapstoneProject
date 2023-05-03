@@ -37,7 +37,7 @@ int main()
     double sample_rate = 10e6;
     double center_freq = 174e6;
     double gain = 0;
-    double bw = 10e6;
+    double bw = 20e6;
     //stream settings
     std::string cpu_fmt = "sc16";
     std::string wire_fmt = "sc16";

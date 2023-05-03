@@ -34,16 +34,21 @@ void UsrpRxStreamer::stream_rx_data(size_t N)
     std::cout << std::to_string(buff_size) << std::endl;
     std::vector<std::complex<float>> rx_buff(buff_size);
     
+    
+    int overflow_count = 0;
     size_t rx_sample_count = 0;
-
-    while(rx_sample_count < 100000)
+    std::cout << std::to_string(60000*buff_size) << std::endl;
+    while(rx_sample_count < 60000*buff_size)
     {
-        size_t num_recv_samps = this->rx_streamer->recv(&rx_buff.front(), rx_buff.size(), md);
-        this->_handle_recv_errors(md, rx_sample_count);
+        //3.0 second timeout
+        size_t num_recv_samps = this->rx_streamer->recv(&rx_buff.front(), rx_buff.size(), md, 3.0);
+        overflow_count += this->_handle_recv_errors(md, rx_sample_count); 
         rx_sample_count += num_recv_samps;
     }
 
     std::cout << "Finished collecting " << std::to_string(rx_sample_count) << " samples." << std::endl;
+    std::cout << "Overflow Count: " << std::to_string(overflow_count) << std::endl;
+    std::cout << "Overflow ratio: " << std::to_string(overflow_count/rx_sample_count) << std::endl;
 }
 
 //private functions
@@ -53,7 +58,7 @@ void UsrpRxStreamer::_preprocess_rx_samples(const uhd::rx_metadata_t& md,
     std::cout << md.strerror() << std::endl;
 }
 
-void UsrpRxStreamer::_handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count)
+int UsrpRxStreamer::_handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count)
 {
     switch (m.error_code)
     {
@@ -67,10 +72,10 @@ void UsrpRxStreamer::_handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count
             std::cout << "----------HELLO----------" << std::endl;
             throw std::runtime_error("ERROR_CODE_TIMEOUT");
         default:
-            std::cout << "----------HELLO----------" << std::endl;
-            std::cout << "RX Count: " << std::to_string(samp_count) << std::endl;
             std::cout << m.to_pp_string() << std::endl;
-            std::cout << "----------HELLO----------" << std::endl;
-            throw std::runtime_error(m.strerror());
+            return 1;
+            break;
+   //         throw std::runtime_error(m.strerror());
     }
+    return 0;
 }
