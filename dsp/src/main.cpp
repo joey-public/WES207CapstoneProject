@@ -3,7 +3,8 @@
 #include <boost/atomic.hpp>
 #include <boost/version.hpp>
 
-#include "include/UsrpHandler.h"
+#include "include/UsrpInitilizer.h"
+#include "include/UsrpRxStreamer.h"
 
 boost::atomic<bool> stop_streaming(false);
 
@@ -27,10 +28,26 @@ int main()
     std::cout << "Host Application Launched" << std::endl;
     std::cout << "Boost Version: " << BOOST_VERSION << std::endl;
     
+    //usrp settings
     std::string ip = "192.168.11.2";
-    UsrpHandler my_usrp{};
-    my_usrp.initilize(ip);
+    std::string subdev = "A:0";
+    std::string ant = "TX/RX";
+    std::string clock_ref = "internal";
+    std::string time_ref = "none";
+    double sample_rate = 10e6;
+    double center_freq = 174e6;
+    double gain = 0;
+    double bw = 10e6;
+    //stream settings
+    std::string cpu_fmt = "sc16";
+    std::string wire_fmt = "sc16";
+
+    UsrpInitilizer my_usrp(ip, subdev, ant, clock_ref, time_ref, 
+                           sample_rate, center_freq, gain, bw);
     std::cout << my_usrp.get_clock_ref() << std::endl;
+
+    UsrpRxStreamer my_rx_streamer(my_usrp.get_usrp(), cpu_fmt, wire_fmt);
+    my_rx_streamer.stream_rx_data(100);
     
     constexpr int ESC_KEY = 27;
     
@@ -53,3 +70,4 @@ int main()
 
     return 0;
 }
+

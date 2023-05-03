@@ -47,7 +47,7 @@ include_directories(
 link_directories(${Boost_LIBRARY_DIRS})
 
 ### Make the executable #######################################################
-add_executable(main main.cpp UsrpHandler.cpp)
+add_executable(main main.cpp UsrpInitilizer.cpp UsrpRxStreamer.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")

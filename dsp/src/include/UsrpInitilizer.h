@@ -1,5 +1,5 @@
-#ifndef USRP_HANDLE_H
-#define USRP_HANDLE_H
+#ifndef USRP_INIT_H
+#define USRP_INIT_H
 
 //std includes
 #include <iostream>
@@ -14,7 +14,7 @@
 //#include <boost/format.hpp>
 #include <boost/thread.hpp>
 
-class UsrpHandler
+class UsrpInitilizer
 {
     private: //instance variables
         std::string ip_addr {"addr=192.168.11.2"};
@@ -33,6 +33,9 @@ class UsrpHandler
         uhd::usrp::multi_usrp::sptr usrp {};
 
     public: //public methods
+        UsrpInitilizer(std::string ip, std::string sd, std::string a, 
+                           std::string cr, std::string tr, double sr, 
+                           double cf, double g, double b);//constructor
         void initilize(std::string ipaddr);
         uhd::usrp::multi_usrp::sptr init_usrp(std::string ipaddr);
 
@@ -56,6 +59,8 @@ class UsrpHandler
         double get_center_freq();
         double get_gain();
         double get_bw();
+        
+        uhd::usrp::multi_usrp::sptr get_usrp();
 };
 
 #endif
