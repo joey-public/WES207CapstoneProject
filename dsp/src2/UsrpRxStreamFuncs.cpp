@@ -1,5 +1,15 @@
-#include "include/UsrpRxStreamer.h"
+#include "include/UsrpRxStreamFuncs.h"
 
+void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp)
+{
+    std::cout << "Start Streaming Data..." << std::endl;
+    //create stream args
+    //create rx_streamer
+    //configure stream cmds
+    //start stream
+}
+
+/*
 //constructor
 UsrpRxStreamer::UsrpRxStreamer(uhd::usrp::multi_usrp::sptr u, std::string cf, std::string wf)
 {
@@ -90,3 +100,4 @@ int UsrpRxStreamer::_handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count)
     }
     return 0;
 }
+*/

@@ -47,9 +47,8 @@ int main()
     std::cout << my_usrp.get_clock_ref() << std::endl;
 
     UsrpRxStreamer my_rx_streamer(my_usrp.get_usrp(), cpu_fmt, wire_fmt);
-    my_rx_streamer.stream_rx_data(100);
+    my_rx_streamer.stream_rx_data();
     
-    constexpr int ESC_KEY = 27;
     
 //    boost::thread s_thread(streamingThread);
 //    boost::thread p_thread(processingThread);
