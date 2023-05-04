@@ -35,4 +35,5 @@ classDiagram
         +get_bw(): double
         +get_usrp(): uhd::usrp::multi_usrp::sptr
     }
-    ```
+
+```
