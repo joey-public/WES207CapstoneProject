@@ -1,8 +1,9 @@
 #include "host_controller.h"
 #include <iostream>
 #include <thread>
+#include <boost/bind.hpp>
 
-Server::Server() : acceptor_(io_context_), next_client_id_(0)
+Server::Server(boost::asio::io_context& io_context): acceptor_(io_context), next_client_id_(0)
 {
     #if 0
     command_handlers_["configure_usrp"] = [this](uint64_t client_id, std::string argument){return this->Server::configure_usrp(client_id, argument);};
@@ -18,35 +19,48 @@ void Server::start()
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     acceptor_.bind(endpoint);
-    acceptor_.listen();
+    acceptor_.listen(1);
 
-    std::cout << "Server listening on port 1234" << std::endl;
-
+    std::cout << "Server listening on port 33334" << std::endl;
     accept_connection();
 }
 
-void Server::accept_connection()
+void Server::accept_connection() 
 {
+    std::cout<<"accept_connection" << std::endl;
     auto socket = std::make_shared<boost::asio::ip::tcp::socket>(io_context_);
-    acceptor_.async_accept(*socket, [this, socket](const boost::system::error_code& error) 
+    acceptor_.async_accept(*socket,
+        boost::bind(&Server::handle_accept, this, socket, boost::asio::placeholders::error));
+
+    std::cout<<"accept_connection exit" << std::endl;
+
+}
+
+/// @brief 
+void Server::run_io_context()
+{
+    io_context_.run();
+    io_context_.restart();
+}
+
+void Server::handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,const boost::system::error_code& error) 
+{
+    if (!error) 
     {
-        if (!error) 
+        std::cout << "Client connected: " << next_client_id_ << std::endl;
         {
-            std::cout << "Client connected: " << next_client_id_ << std::endl;
-            {
-                boost::unique_lock<boost::mutex> lock(sockets_mutex_);
-                sockets_[next_client_id_] = socket;
-                sample_buffers_[next_client_id_] = std::queue<Sample>();
-            }
-            next_client_id_++;
-            read_sample(socket);
-        } 
-        else 
-        {
-            std::cerr << "Error accepting connection: " << error.message() << std::endl;
+            boost::unique_lock<boost::mutex> lock(sockets_mutex_);
+            sockets_[next_client_id_] = socket;
+            sample_buffers_[next_client_id_] = std::queue<Sample>();
         }
-        accept_connection();
-    });
+        next_client_id_++;
+        read_sample(socket);
+    } 
+    else 
+    {
+        std::cout << "Error accepting connection: " << error.message() << std::endl;
+    }
+    accept_connection();
 }
 
 void Server::read_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket)
@@ -138,12 +152,10 @@ void Server::disconnect_client(uint64_t client_id)
 std::vector<uint64_t>Server::get_connected_clients()
 {
     std::vector<uint64_t> clients;
+    boost::unique_lock<boost::mutex> lock(sockets_mutex_);
+    for (const auto& pair : sockets_) 
     {
-        boost::unique_lock<boost::mutex> lock(sockets_mutex_);
-        for (const auto& pair : sockets_) 
-        {
-            clients.push_back(pair.first);
-        }
+        clients.push_back(pair.first);
     }
     return clients;
 }
@@ -156,6 +168,7 @@ void Server::handle_client_disconnection(uint64_t client_id)
 
 void Server::run_localization()
 {
+    #if 0
     localization_thread_ = std::thread([this]()
     {
             while (true) 
@@ -168,5 +181,6 @@ void Server::run_localization()
                 // perform localization calculations here
              }
     });
+    #endif
 
 }

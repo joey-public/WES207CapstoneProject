@@ -25,8 +25,9 @@ struct Response
 class Server 
 {
 public:
-    Server();
+    Server(boost::asio::io_context& io_context);
     void start();
+    void run_io_context();
     void send_control_command(uint64_t client_id, std::string command);
     void broadcast_control_command(std::string command);
     void disconnect_client(uint64_t client_id);
@@ -36,7 +37,7 @@ public:
     std::thread localization_thread_;
 
 private:
-
+    void handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,const boost::system::error_code& error);
     void read_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket);
     void handle_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket, std::shared_ptr<Sample> sample, const boost::system::error_code& error, std::size_t bytes_transferred);
     void configure_usrp(uint64_t client_id, std::string argument);
@@ -44,6 +45,7 @@ private:
     void start_streaming(uint64_t client_id, std::string argument);
     void stop_streaming(uint64_t client_id, std::string argument);
     void handle_client_disconnection(uint64_t client_id);
+    void io_context_run();
    
 
     boost::asio::io_context io_context_;

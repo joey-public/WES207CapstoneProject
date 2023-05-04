@@ -1,20 +1,28 @@
 #include <iostream>
 #include<boost/asio.hpp>
 #include<host_controller.h>
+#include <boost/thread.hpp>
 
 int main(int argc, char* argv[])
 {
     try 
     {
         boost::asio::io_context io_context;
-        Server server;
+        Server server(io_context);
 
         //Start the server
         server.start();
 
-        // Wait for all clients to connect
-        while (server.get_connected_clients().size() < 2) 
+        // Run the io_context object on a separate thread (lambda function)
+        std::thread io_thread([&io_context]()
         {
+            io_context.run();
+        });
+
+        // Wait for all clients to connect
+        while (server.get_connected_clients().size() < 1) 
+        {
+          //std::cout << "Still waiting for more clients" << std::endl;
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
@@ -48,6 +56,9 @@ int main(int argc, char* argv[])
         }
           // Join the localization thread
           localization_thread.join();
+
+          //Join iocontect
+          io_thread.join();
 
     } 
     catch (std::exception& e) 

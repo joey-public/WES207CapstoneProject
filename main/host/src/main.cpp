@@ -12,9 +12,7 @@ int main(int argc, char* argv[])
     Client client(io_context, argv[1], argv[2]);
     client.start();
 
-    io_context.run();
-
-    client.stop();
+    //client.stop();
     client.control_command_thread_.join();
     client.dsp_thread_.join();
 

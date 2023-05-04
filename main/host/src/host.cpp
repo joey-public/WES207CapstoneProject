@@ -1,4 +1,5 @@
 #include "host.h"
+#include <boost/asio/ip/tcp.hpp>
 
 Client::Client(boost::asio::io_context& io_context, const std::string& server_address, const std::string& server_port)
     : io_context_(io_context),
@@ -18,17 +19,18 @@ void Client::start()
 
     boost::asio::ip::tcp::resolver resolver(io_context_);
     auto endpoints = resolver.resolve(server_address_, server_port_);
-    boost::asio::connect(socket_, endpoints);
-
+    socket_.connect( boost::asio::ip::tcp::endpoint( boost::asio::ip::address::from_string("127.0.0.1"), 33334 ));
     std::cout << "Connected to server." << std::endl;
 
+#if 0
     // Get assigned client ID from server
     boost::asio::streambuf response_buffer;
     boost::asio::read_until(socket_, response_buffer, '\n');
     std::istream response_stream(&response_buffer);
     response_stream >> client_id_;
     std::cout << "Assigned client ID: " << client_id_ << std::endl;
-
+#endif
+    boost::asio::write(socket_, boost::asio::buffer("This is Client"));
     control_command_thread_ = std::thread(&Client::control_command_handler, this);
     dsp_thread_ = std::thread(&Client::dsp_handler, this);
 }
