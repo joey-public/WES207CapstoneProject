@@ -1,4 +1,19 @@
 ```mermaid
+graph TD
+A[Initialize USRP] --> B(wait for start message from host controller)
+B --> C(synch to GPS)
+C --> D(Start Threads)
+D --> E(Wait for 'ESC' keypress)
+D --> F(Streaming thread)
+D --> G(Processing thread)
+E --> I(Wait for threads to join)
+F --> I
+G --> I
+I --> J(send data packet to host controller)
+J --> B
+```
+
+```mermaid
 classDiagram
     class UsrpInitilizer {
         -std::string ip_addr
