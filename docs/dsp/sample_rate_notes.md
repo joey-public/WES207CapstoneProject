@@ -22,3 +22,7 @@ $$RD = \left|d_2-d_1\right| = c \times TDOA$$
 
 With a 100 Mhz sample rate the minimum TDOA is 10 ns which corresponds to minimum detectable RD of 3 meters. 
 
+So we can define the min TDOA and min RD based on the recieved sampling rate:
+$$TDOA_{min} = \frac{1}{f_s}$$
+$$RD_{min} = \frac{c}{TDOA_{min}} = c \times f_s$$
+
