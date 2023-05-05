@@ -10,7 +10,7 @@ Because each receiver is sampling at $f_s$ they measure arrival times in integer
 
 The speed of light is $c=3\times 10^8$ m/s. This means the transmit signal travels a distance of $1$ meter in $\Delta t=\frac{1}{3\times 10^8}\frac{m}{m/s} \approx 3.33$ ns. 
 
-The max sample rate of our USRP radios is 100 MHz. So the fastes we can collect samples is once every 10 ns.  
+The max sample rate of our USRP radios is 100 MHz. So the fastes we can collect samples is $1/f_s = 10 ns$.  
 
 The TDOA between two recievers is defined as: 
 $$TDOA = |t_2-t_1|$$
