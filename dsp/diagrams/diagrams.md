@@ -10,10 +10,65 @@ C --> F(DSP Thread)
 D --> G(Join Threads)
 E --> G
 F --> G
-G --> H(End Program)
+G --> H[End Program]
 ```
 
-## Control THread
+## Control Thread
+```mermaid
+graph TD
+A[start] --> B(Await Start Msg)
+B --> C{GPS Lock ?}
+C --> |Yes| D(Send Ok to Stream Msg)
+C --> |No| E(Wait for GPS Lock)
+E --> C
+D --> F(Await Stream Msg)
+F --> G(Set Start Stream CV)
+G --> H{TOA CV True ?}
+H --> |Yes| I(Reset Start Stream CV)
+H --> |No| J(Wait for TOA CV)
+J --> H
+I --> K(Send TOA Packet)
+K --> L(Reset TOA CV)
+L --> B
+```
+
+## Streaming Thread
+```mermaid
+graph TD
+A[start] --> B(Await Start Stream CV)
+B --> C(Sync to PPS)
+C --> D(Start Streaming)
+D --> E{End CV Set?}
+E --> |Yes| B
+E --> |No| F{Swap RX Buff?}
+F --> |Yes| G(Release CurBuff Lock)
+F --> |No| H(Recv to CurBuff)
+H --> E
+G --> I(Change CurBuff)
+I --> J(Aquire CurBuff Lock)
+J --> H
+```
+
+## DSP Thread
+```mermaid
+graph TD
+A[start] --> B(Aquire RecvBuff Lock)
+B --> C(Dump RecvBuff to SpBuff)
+C --> D(Compute SpBuff Mag)
+D --> E(Compute SpBuff Avg)
+E --> EE(Release RecvBuff Lock)
+EE --> F{Res > Th ?} 
+F --> |Yes| G(Aquire RecvBuff Lock)
+F --> |No| B
+G --> H(Dump RecvBuff to LpBuff)
+H --> I(Release RecvBuff Lock)
+I --> J{LpBuff Full ?}
+J --> |Yes| K(Xcorr Calculation)
+J --> |No| G
+K --> L(Prep TOA Data Pkt)
+L --> M(Set TOA CV)
+```
+
 
 ## Old Diagrams
 
