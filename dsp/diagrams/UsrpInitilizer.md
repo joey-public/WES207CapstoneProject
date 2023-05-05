@@ -1,3 +1,22 @@
+## Host main.cpp flowchart
+
+```mermaid
+graph TD
+A[start]--> B(config usrp)
+B --> C(launch threads)
+C --> D(Contorl Thread)
+C --> E(RxStreamThread)
+C --> F(DSP Thread)
+D --> G(Join Threads)
+E --> G
+F --> G
+G --> H(End Program)
+```
+
+## Control THread
+
+## Old Diagrams
+
 ```mermaid
 graph TD
 A[Initialize USRP] --> B(wait for start message from host controller)
