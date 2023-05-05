@@ -1,3 +1,15 @@
+## DSP General Flowchart
+```mermaid
+graph LR
+A(RX Data Stream)-->B(Take Magnitide)
+B --> C(FIR BPF Filter)
+C --> D(Threshold Detection)
+D --> E{Above Th ?}
+E --> |Yes| F(Dump 30 ms Data to memory)
+E --> |No| A
+F --> G(send stored data to CPU)
+```
+
 ## Host main.cpp flowchart
 
 ```mermaid
