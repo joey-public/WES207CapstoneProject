@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <boost/asio.hpp>
+#include "UsrpInitilizer.h"
 
 struct Sample 
 {
@@ -41,6 +42,8 @@ private:
     bool is_configured_;
     bool is_synchronized_;
     bool is_streaming_;
+    UsrpInitilizer* usrp_handler = NULL;
+    void recv_to_file(void);
 };
 
 #endif//__HOST_H__

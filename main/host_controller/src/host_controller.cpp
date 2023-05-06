@@ -19,7 +19,7 @@ void Server::start()
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     acceptor_.bind(endpoint);
-    acceptor_.listen(1);
+    acceptor_.listen();//was one
 
     std::cout << "Server listening on port 33334" << std::endl;
     accept_connection();

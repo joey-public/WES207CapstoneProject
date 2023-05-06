@@ -53,9 +53,10 @@ include_directories(
 link_directories(${Boost_LIBRARY_DIRS})
 
 ### Make the executable #######################################################
-add_executable(host
+add_executable(host 
         ${CMAKE_SOURCE_DIR}/src/main.cpp 
-        ${CMAKE_SOURCE_DIR}/src/host.cpp)
+        ${CMAKE_SOURCE_DIR}/src/host.cpp
+        ${CMAKE_SOURCE_DIR}/src/UsrpInitilizer.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")
