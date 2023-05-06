@@ -1,6 +1,14 @@
 #include "host.h"
 #include <boost/asio/ip/tcp.hpp>
 #include <fstream>
+#include <istream>
+#include <gnuplot-iostream.h>
+
+typedef struct md_time_data_s
+{
+    int64_t full_secs;
+    double frac_secs;
+}md_time_data;
 
 Client::Client(boost::asio::io_context& io_context, 
         const std::string& server_address, 
@@ -144,12 +152,30 @@ void Client::start_streaming()
 
 void Client::stop_streaming()
 {
-    std::cout << "Stopping streaming..." << std::endl;
+    std::cout << "Stopping streaming...showing graphs" << std::endl;
     // stop streaming here
     is_streaming_ = false;
+    std::string filename = "usrp_pps_data.dat";
+    //Gnuplot gp;
 
+    // open file for reading
+    std::ifstream infile(filename, std::ios::binary);
+
+    // loop for reading samples from file
+    while (!infile.eof()) 
+    {
+        // read metadata and samples from file
+        md_time_data md;
+        infile.read((char*)&md, sizeof(md));
+        std::vector<std::complex<short>> samples(10000);
+        infile.read((char*)&samples[0], samples.size() * sizeof(std::complex<short>));
+
+        // print out samples with timestamp
+        std::cout << "Read " << samples.size() << " samples with timestamp Sec: " << md.full_secs << "frac sec" <<  md.full_secs <<std::endl;
+        // TODO: process received samples
+    }
+    infile.close();
     std::cout << "Streaming stopped." << std::endl;
-   
 }
 
 void Client::send_sample(const Sample& sample)
@@ -226,6 +252,7 @@ void Client::recv_to_file(void)
     bool null                       = false;
     bool enable_size_map            = false;
     bool stats                      = false;
+    md_time_data md_time_info       = {};                   
 
     unsigned long long num_total_samps      = 0;
     static bool stop_signal_called          = false;
@@ -318,19 +345,21 @@ void Client::recv_to_file(void)
                     mapSizes[num_rx_samps] = 0;
                     mapSizes[num_rx_samps] += 1;
                 }
-
+                md_time_info.full_secs = md.time_spec.get_full_secs();
+                md_time_info.frac_secs = md.time_spec.get_frac_secs();
+#if 0
                 std::cout << boost::format(
                              "Received packet: %u samples, %u full secs, %f frac secs")
                              % num_rx_samps % md.time_spec.get_full_secs()
                              % md.time_spec.get_frac_secs()
                       << std::endl;
 
-
+#endif
                 num_total_samps += num_rx_samps;
 
                 if (outfile.is_open()) 
                 {
-                    outfile.write((char*)&md, sizeof(md));
+                    outfile.write((char*)&md_time_info, sizeof(md_time_info));
                     outfile.write((const char*)&buff.front(), num_rx_samps * sizeof(std::complex<short>));
                 }
 
