@@ -18,7 +18,10 @@ struct Sample
 class Client 
 {
 public:
-    Client(boost::asio::io_context& io_context, const std::string& server_address, const std::string& server_port);
+    Client(boost::asio::io_context& io_context, 
+            const std::string& server_address, 
+            const std::string& server_port, 
+            const std::string& usrp_ip);
 
     void start();
     void stop();
@@ -38,6 +41,7 @@ private:
     boost::asio::ip::tcp::socket socket_;
     std::string server_address_;
     std::string server_port_;
+    std::string usrp_ip_;
     int client_id_;
     bool is_configured_;
     bool is_synchronized_;

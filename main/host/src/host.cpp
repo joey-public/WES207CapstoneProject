@@ -2,7 +2,10 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <fstream>
 
-Client::Client(boost::asio::io_context& io_context, const std::string& server_address, const std::string& server_port)
+Client::Client(boost::asio::io_context& io_context, 
+        const std::string& server_address, 
+        const std::string& server_port,
+        const std::string& usrp_ip)
     : io_context_(io_context),
       socket_(io_context),
       server_address_(server_address),
@@ -10,7 +13,8 @@ Client::Client(boost::asio::io_context& io_context, const std::string& server_ad
       client_id_(0),
       is_configured_(false),
       is_synchronized_(false),
-      is_streaming_(false)
+      is_streaming_(false),
+      usrp_ip_(usrp_ip)
 {
       
 }
@@ -18,7 +22,7 @@ Client::Client(boost::asio::io_context& io_context, const std::string& server_ad
 void Client::start()
 {
     std::cout << "Connecting to server " << server_address_ << ":" << server_port_ << "..." << std::endl;
-
+    std::cout << "USRP IP Address: " << usrp_ip_ << std::endl;
     boost::asio::ip::tcp::resolver resolver(io_context_);
     auto endpoints = resolver.resolve(server_address_, server_port_);
     socket_.connect( boost::asio::ip::tcp::endpoint( boost::asio::ip::address::from_string("127.0.0.1"), 33334 ));
@@ -49,7 +53,7 @@ void Client::configure_usrp()
     std::cout << "Configuring USRP..." << std::endl;
       
       //usrp settings
-    std::string ip          = "192.168.11.2";
+    std::string ip          = usrp_ip_;
     std::string subdev      = "A:0";
     std::string ant         = "TX/RX";
     std::string clock_ref   = "external";
@@ -70,7 +74,6 @@ void Client::configure_usrp()
                                     clock_ref, time_ref,
                                     sample_rate, center_freq, gain, bw);
     }
-
     std::cout << boost::format("Using Device: %s") % usrp_handler->get_usrp()->get_pp_string() << std::endl;
     std::cout << usrp_handler->get_clock_ref() << std::endl;
     std::cout << usrp_handler->get_time_ref() << std::endl;

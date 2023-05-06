@@ -2,14 +2,14 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3) 
+    if (argc != 4) 
     {
-        std::cerr << "Usage: client <server_address> <server_port>" << std::endl;
+        std::cerr << "Usage: ./host <server_address> <server_port> <usrp_ip>" << std::endl;
         return 1;
     }
     boost::asio::io_context io_context;
 
-    Client client(io_context, argv[1], argv[2]);
+    Client client(io_context, argv[1], argv[2], argv[3]);
     client.start();
 
     //client.stop();
