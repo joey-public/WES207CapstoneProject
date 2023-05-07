@@ -33,7 +33,8 @@ void Client::start()
     std::cout << "USRP IP Address: " << usrp_ip_ << std::endl;
     boost::asio::ip::tcp::resolver resolver(io_context_);
     auto endpoints = resolver.resolve(server_address_, server_port_);
-    socket_.connect( boost::asio::ip::tcp::endpoint( boost::asio::ip::address::from_string("127.0.0.1"), 33334 ));
+    //socket_.connect( boost::asio::ip::tcp::endpoint( boost::asio::ip::address::from_string("127.0.0.1"), 33334 ));
+    boost::asio::connect(socket_, endpoints);
     std::cout << "Connected to server." << std::endl;
 
 #if 0
@@ -130,12 +131,12 @@ void Client::synchronize_pps()
         std::cout << "PPS sync PASS!" << std::endl;
     }
     uhd::time_spec_t time_spec = usrp_handler->get_usrp()->get_time_now();
-#if 0
+
     std::cout << "Current USRP Time frac sec: " << time_spec.get_frac_secs() << std::endl;
     std::cout << "Current USRP Time full sec: " << time_spec.get_full_secs() << std::endl;
     std::cout << "Current USRP Time Real sec: " << time_spec.get_real_secs() << std::endl;
     std::cout << "Current USRP Time Tick count: "<< time_spec.get_tick_count(time_spec.get_frac_secs()) << std::endl;
-#endif
+
     is_synchronized_ = true;
     std::cout << "Synchronized to PPS." << std::endl;
 }
@@ -195,19 +196,19 @@ void Client::control_command_handler()
         std::istream command_stream(&command_buffer);
         std::string command;
         command_stream >> command;
-        if (command == "configure_usrp") 
+        if (command == "config") 
         {
             configure_usrp();
         } 
-        else if (command == "synchronize_pps") 
+        else if (command == "sync") 
         {
             synchronize_pps();
         } 
-        else if (command == "start_streaming") 
+        else if (command == "stream") 
         {
             start_streaming();
         } 
-        else if (command == "stop_streaming") 
+        else if (command == "stop") 
         {
             stop_streaming();
         } 

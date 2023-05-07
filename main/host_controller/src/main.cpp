@@ -1,14 +1,19 @@
 #include <iostream>
-#include<boost/asio.hpp>
-#include<host_controller.h>
+#include <boost/asio.hpp>
+#include "host_controller.h"
 #include <boost/thread.hpp>
 
 int main(int argc, char* argv[])
 {
     try 
     {
+        if (argc != 3) 
+        {
+          std::cerr << "Usage: ./host_controller <server_address> <server_port>" << std::endl;
+          return 1;
+        }
         boost::asio::io_context io_context;
-        Server server(io_context);
+        Server server(io_context, argv[1], argv[2]);
 
         //Start the server
         server.start();
@@ -33,7 +38,7 @@ int main(int argc, char* argv[])
         std::string command;
         while (std::getline(std::cin, command)) 
         {
-            if (command == "configure_usrp" || command == "synchronize_pps" || command == "start_streaming" || command == "stop_streaming") 
+            if (command == "config" || command == "sync" || command == "stream" || command == "stop") 
             {
                 server.broadcast_control_command(command);
             }

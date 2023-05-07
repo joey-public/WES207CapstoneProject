@@ -25,7 +25,7 @@ struct Response
 class Server 
 {
 public:
-    Server(boost::asio::io_context& io_context);
+    Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num);
     void start();
     void run_io_context();
     void send_control_command(uint64_t client_id, std::string command);
@@ -56,6 +56,8 @@ private:
     std::map<std::string, std::function<void(uint64_t, std::string)>> command_handlers_;
     uint64_t next_client_id_;
     boost::mutex sockets_mutex_;
+    std::string server_addr_;
+    uint32_t server_port_;
 };
 
 #endif //HOST_CONTROLLER_H

@@ -1,10 +1,15 @@
 #include "host_controller.h"
 #include <iostream>
 #include <thread>
+#include <string>
 #include <boost/bind.hpp>
 
-Server::Server(boost::asio::io_context& io_context): acceptor_(io_context), next_client_id_(0)
+Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
+acceptor_(io_context), 
+next_client_id_(0),
+server_addr_(addr)
 {
+    server_port_ = std::stoi(port_num);
     #if 0
     command_handlers_["configure_usrp"] = [this](uint64_t client_id, std::string argument){return this->Server::configure_usrp(client_id, argument);};
     command_handlers_["synchronize_pps"] = [this](uint64_t client_id, std::string argument){return this->Server::synchronize_pps(client_id, argument);};
@@ -15,7 +20,8 @@ Server::Server(boost::asio::io_context& io_context): acceptor_(io_context), next
 
 void Server::start()
 {
-    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), 33334);
+    //boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), 33334);
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::make_address_v4(server_addr_), server_port_);
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     acceptor_.bind(endpoint);
