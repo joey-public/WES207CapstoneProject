@@ -19,7 +19,7 @@ int main()
     std::string ant = "TX/RX";
     std::string clock_ref = "internal";
     std::string time_ref = "none";
-    double sample_rate = 10e6;
+    double sample_rate = 1e6;
     double center_freq = 174e6;
     double gain = 0;
     double bw = 20e6;
@@ -29,7 +29,7 @@ int main()
 
     uhd::usrp::multi_usrp::sptr usrp = gen_usrp(ip, subdev, ant, clock_ref, time_ref, sample_rate, center_freq, gain, bw);
     
-    stream_rx_data(usrp);
+    stream_rx_data_2(usrp);
 
     std::cout << "Host Application ended" << std::endl;
 
