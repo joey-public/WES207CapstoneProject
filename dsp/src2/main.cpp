@@ -1,14 +1,14 @@
 #include <iostream>
-#include <boost/thread.hpp>
-#include <boost/atomic.hpp>
-#include <boost/version.hpp>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include <uhd/utils/safe_main.hpp>
 
 #include "include/UsrpInitFuncs.h"
 #include "include/UsrpRxStreamFuncs.h"
+#include "include/ProcessingFuncs.h"
 
-boost::atomic<bool> stop_streaming(false);
-
-int main()
+int UHD_SAFE_MAIN(int argc, char* argv[])
 {
     std::cout << "Host Application Launched" << std::endl;
     std::cout << "Boost Version: " << BOOST_VERSION << std::endl;
@@ -29,10 +29,15 @@ int main()
 
     uhd::usrp::multi_usrp::sptr usrp = gen_usrp(ip, subdev, ant, clock_ref, time_ref, sample_rate, center_freq, gain, bw);
     
-    stream_rx_data_2(usrp);
+    int stream_time = 5;//seconds
+    size_t buffer_sz = stream_time * usrp->get_rx_rate();
+    std::vector<std::complex<float>> data_buffer(buffer_sz);
+    stream_rx_data(usrp, buffer_sz, &data_buffer.front());
+    
+    process_data(data_buffer);
 
     std::cout << "Host Application ended" << std::endl;
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 

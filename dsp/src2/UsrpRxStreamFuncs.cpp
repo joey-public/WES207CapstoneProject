@@ -3,8 +3,11 @@
 #define DEBUG 
 //#define DEBUG_VERBOSE
 
-void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp)
+
+void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp, 
+                        size_t buff_sz, std::complex<float>* recv_ptr)
 {
+    
     std::cout << "Start Streaming Data..." << std::endl;
 
     std::string cpu_fmt = "fc32";
@@ -16,19 +19,6 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp)
     size_t recv_pkt_sz = rx_stream->get_max_num_samps();
     float recv_pkt_dt = recv_pkt_sz / usrp->get_rx_rate();
 
-    std::cout << "RX Buff Size: " << std::to_string(recv_pkt_sz) << std::endl;
-    std::cout << "\t pkt dt = " << std::to_string(recv_pkt_sz)
-                                << " samples / " 
-                                << std::to_string(usrp->get_rx_rate() / 1e6)  
-                                << " Mhz = " 
-                                << std::to_string((recv_pkt_sz * 1e6) / usrp->get_rx_rate())
-                                << " us" << std::endl;
-    
-    //create double buffers for receiveing packets from usrp
-    std::vector<std::complex<float>> pkt_buff_0(recv_pkt_sz);
-    std::vector<std::complex<float>> pkt_buff_1(recv_pkt_sz);
-    bool use_recv_buff_0 = true;
-
     //initilize streaming metadata
     uhd::rx_metadata_t md;
     float stream_timeout = 3.0;
@@ -37,23 +27,19 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp)
     
     size_t num_recv_samps = 0;
     size_t rx_sample_count = 0;
-    size_t total_samples = 1e6;
-    while(rx_sample_count < total_samples)
+    size_t total_samples = 0;
+    while(total_samples <= buff_sz)
     { 
-        if(use_recv_buff_0)
-        { 
-            num_recv_samps = rx_stream->recv(&pkt_buff_0.front(), recv_pkt_sz, md, stream_timeout);
-        }
-        else
-        {
-            num_recv_samps = rx_stream->recv(&pkt_buff_1.front(), recv_pkt_sz, md, stream_timeout);
-        }
+        num_recv_samps = rx_stream->recv(recv_ptr, recv_pkt_sz, md, stream_timeout);
+        _handle_recv_errors(md, rx_sample_count);
         rx_sample_count += num_recv_samps;        
-        use_recv_buff_0 = !use_recv_buff_0;
+        recv_ptr += num_recv_samps; 
+        total_samples += num_recv_samps;
     }
+    std::cout << "Stop Streaming Data..." << std::endl;
 }
 
-void stream_rx_data_2(uhd::usrp::multi_usrp::sptr usrp)
+void stream_rx_data_continuous(uhd::usrp::multi_usrp::sptr usrp)
 {
     std::cout << "Start Streaming Data..." << std::endl;
 
