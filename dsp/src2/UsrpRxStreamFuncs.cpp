@@ -23,7 +23,11 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
     uhd::rx_metadata_t md;
     float stream_timeout = 3.0;
     //configure stream cmds
-    rx_stream->issue_stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
+    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
+//    stream_cmd.stream_now = true;
+    rx_stream->issue_stream_cmd(stream_cmd);
+
+    //sync to gps here...
     
     size_t num_recv_samps = 0;
     size_t rx_sample_count = 0;
@@ -36,6 +40,11 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
         recv_ptr += num_recv_samps; 
         total_samples += num_recv_samps;
     }
+
+    //stop the stream
+    stream_cmd.stream_mode = uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS;
+    rx_stream->issue_stream_cmd(stream_cmd);
+
     std::cout << "Stop Streaming Data..." << std::endl;
 }
 
@@ -136,10 +145,8 @@ int _handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count)
             break;
         case uhd::rx_metadata_t::ERROR_CODE_TIMEOUT:
             if (samp_count == 0) {break;}
-            std::cout << "----------HELLO----------" << std::endl;
             std::cout << "RX Count: " << std::to_string(samp_count) << std::endl;
             std::cout << m.to_pp_string() << std::endl;
-            std::cout << "----------HELLO----------" << std::endl;
             throw std::runtime_error("ERROR_CODE_TIMEOUT");
             break;
         case uhd::rx_metadata_t::ERROR_CODE_OVERFLOW:

@@ -7,6 +7,7 @@
 #include "include/UsrpInitFuncs.h"
 #include "include/UsrpRxStreamFuncs.h"
 #include "include/ProcessingFuncs.h"
+#include "include/UtilFuncs.h"
 
 int UHD_SAFE_MAIN(int argc, char* argv[])
 {
@@ -29,12 +30,20 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
 
     uhd::usrp::multi_usrp::sptr usrp = gen_usrp(ip, subdev, ant, clock_ref, time_ref, sample_rate, center_freq, gain, bw);
     
-    int stream_time = 5;//seconds
+    //cacl buffer size for desired time
+    int stream_time = 2;//seconds
     size_t buffer_sz = stream_time * usrp->get_rx_rate();
+
+    //fill the buffer with data from the usrp
     std::vector<std::complex<float>> data_buffer(buffer_sz);
     stream_rx_data(usrp, buffer_sz, &data_buffer.front());
-    
+   
+    //process the data
     process_data(data_buffer);
+    
+    //save data to file
+     
+//    save_raw_data_to_file(data_buffer);
 
     std::cout << "Host Application ended" << std::endl;
 

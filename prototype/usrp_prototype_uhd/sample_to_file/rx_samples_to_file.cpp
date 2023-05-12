@@ -236,7 +236,7 @@ void readFile(const std::string& filename)
 
 
 
-#nt UHD_SAFE_MAIN(int argc, char* argv[])
+int UHD_SAFE_MAIN(int argc, char* argv[])
 {
     // variables to be set by po
     std::string args, file, type, ant, subdev, ref, wirefmt;
