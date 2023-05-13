@@ -20,7 +20,7 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
     std::string ant = "TX/RX";
     std::string clock_ref = "internal";
     std::string time_ref = "none";
-    double sample_rate = 25e6;
+    double sample_rate = 1e6;
     double center_freq = 174e6;
     double gain = 0;
     double bw = 20e6;

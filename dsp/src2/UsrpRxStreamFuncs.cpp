@@ -56,6 +56,7 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
     std::cout << "Stop Streaming Data..." << std::endl;
 }
 
+//currently NOP
 void stream_rx_data_continuous(uhd::usrp::multi_usrp::sptr usrp)
 {
     std::cout << "Start Streaming Data..." << std::endl;
