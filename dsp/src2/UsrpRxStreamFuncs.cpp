@@ -19,6 +19,14 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
     size_t recv_pkt_sz = rx_stream->get_max_num_samps();
     float recv_pkt_dt = recv_pkt_sz / usrp->get_rx_rate();
 
+    std::cout << "RX Buff Size: " << std::to_string(recv_pkt_sz) << std::endl;
+    std::cout << "\t pkt dt = " << std::to_string(recv_pkt_sz)
+                                << " samples / " 
+                                << std::to_string(usrp->get_rx_rate() / 1e6)  
+                                << " Mhz = " 
+                                << std::to_string((recv_pkt_sz * 1e6) / usrp->get_rx_rate())
+                                << " us" << std::endl;
+
     //initilize streaming metadata
     uhd::rx_metadata_t md;
     float stream_timeout = 3.0;
@@ -54,12 +62,17 @@ void stream_rx_data_continuous(uhd::usrp::multi_usrp::sptr usrp)
 
     std::string cpu_fmt = "fc32";
     std::string wire_fmt = "sc16";
+    std::cout << "probing...0" << std::endl;
 
     //create stream args
     uhd::stream_args_t stream_args(cpu_fmt, wire_fmt);
+    std::cout << "probing...1" << std::endl;
     uhd::rx_streamer::sptr rx_stream = usrp->get_rx_stream(stream_args);
+    std::cout << "probing...2" << std::endl;
     size_t recv_pkt_sz = rx_stream->get_max_num_samps();
+    std::cout << "probing...3" << std::endl;
     float recv_pkt_dt = recv_pkt_sz / usrp->get_rx_rate();
+    std::cout << "probing...4" << std::endl;
 
     std::cout << "RX Buff Size: " << std::to_string(recv_pkt_sz) << std::endl;
     std::cout << "\t pkt dt = " << std::to_string(recv_pkt_sz)
