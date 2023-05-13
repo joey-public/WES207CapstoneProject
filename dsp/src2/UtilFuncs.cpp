@@ -19,6 +19,23 @@ void save_raw_data_to_file(const std::vector<std::complex<float>> &data_buff,
     }
 }
 
+void save_mag_data_to_file(const std::vector<float> &data_buff, 
+                               const std::string& filepath)
+{
+    std::ofstream outFile;
+    outFile.open(filepath.c_str());
+    
+    if (outFile.is_open()) {
+        for (const auto& item : data_buff) 
+        {
+            std::string val = std::to_string(item);
+            outFile << val << " ";
+        }
+    
+    outFile.close();
+    }
+}
+
 void plot_with_python(std::string python_file, std::string data_path, std::string image_path)
 {
     std::string command = "python " + python_file + " " + data_path + " " + image_path;
