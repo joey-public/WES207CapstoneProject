@@ -32,6 +32,8 @@ find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 target_link_libraries (main Eigen3::Eigen) 
 ```
 
+make sure to add the `target_link_libraries()` call after the `add_executable()` line or the cmake call will fail.  
+
 ## Step 4: Add cmake flag when building project
 When running cmake to builf your uhd project add the following flag
 

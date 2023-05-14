@@ -29,7 +29,6 @@ find_package(UHD 4.1.0 REQUIRED)
 #find_package(UHD 4.0.0 EXACT REQUIRED)
 
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-target_link_libraries (main Eigen3::Eigen) 
 
 # This example also requires Boost.
 # Set components here, then include UHDBoost to do the actual finding
@@ -60,6 +59,8 @@ message(STATUS "* exactly match what you require. Make sure to double-check comp
 message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
 
+
+target_link_libraries (main Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
