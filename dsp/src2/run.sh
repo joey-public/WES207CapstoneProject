@@ -1,5 +1,5 @@
 #!/bin/bash
 make clean
-cmake ../
+cmake ../ -DEigen3_DIR=$HOME/mypackages/
 make 
 ./main

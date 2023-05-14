@@ -1,0 +1,3 @@
+/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/rebuild_cache.dir
+/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/edit_cache.dir
+/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/main.dir

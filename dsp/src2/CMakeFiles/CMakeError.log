@@ -1,0 +1,58 @@
+Performing C++ SOURCE FILE Test CMAKE_HAVE_LIBC_PTHREAD failed with the following output:
+Change Dir: /home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_3cb6f/fast && /usr/bin/make -f CMakeFiles/cmTC_3cb6f.dir/build.make CMakeFiles/cmTC_3cb6f.dir/build
+make[1]: Entering directory '/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_3cb6f.dir/src.cxx.o
+/usr/bin/c++    -DCMAKE_HAVE_LIBC_PTHREAD   -o CMakeFiles/cmTC_3cb6f.dir/src.cxx.o -c /home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_3cb6f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3cb6f.dir/link.txt --verbose=1
+/usr/bin/c++   -DCMAKE_HAVE_LIBC_PTHREAD    CMakeFiles/cmTC_3cb6f.dir/src.cxx.o  -o cmTC_3cb6f 
+/usr/bin/ld: CMakeFiles/cmTC_3cb6f.dir/src.cxx.o: in function `main':
+src.cxx:(.text+0x46): undefined reference to `pthread_create'
+/usr/bin/ld: src.cxx:(.text+0x52): undefined reference to `pthread_detach'
+/usr/bin/ld: src.cxx:(.text+0x63): undefined reference to `pthread_join'
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_3cb6f.dir/build.make:87: cmTC_3cb6f] Error 1
+make[1]: Leaving directory '/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_3cb6f/fast] Error 2
+
+
+Source file was:
+#include <pthread.h>
+
+void* test_func(void* data)
+{
+  return data;
+}
+
+int main(void)
+{
+  pthread_t thread;
+  pthread_create(&thread, NULL, test_func, NULL);
+  pthread_detach(thread);
+  pthread_join(thread, NULL);
+  pthread_atfork(NULL, NULL, NULL);
+  pthread_exit(NULL);
+
+  return 0;
+}
+
+Determining if the function pthread_create exists in the pthreads failed with the following output:
+Change Dir: /home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/bin/make cmTC_0c310/fast && /usr/bin/make -f CMakeFiles/cmTC_0c310.dir/build.make CMakeFiles/cmTC_0c310.dir/build
+make[1]: Entering directory '/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0c310.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++    -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_0c310.dir/CheckFunctionExists.cxx.o -c /home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_0c310
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0c310.dir/link.txt --verbose=1
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create    CMakeFiles/cmTC_0c310.dir/CheckFunctionExists.cxx.o  -o cmTC_0c310  -lpthreads 
+/usr/bin/ld: cannot find -lpthreads
+collect2: error: ld returned 1 exit status
+make[1]: *** [CMakeFiles/cmTC_0c310.dir/build.make:87: cmTC_0c310] Error 1
+make[1]: Leaving directory '/home/joey/Documents/GitRepos/WES207CapstoneProject/dsp/src2/CMakeFiles/CMakeTmp'
+make: *** [Makefile:121: cmTC_0c310/fast] Error 2
+
+
+
