@@ -2,6 +2,7 @@
 #include <cstring>
 #include <cstddef>
 #include <iostream>
+#include <sstream>
 
 const std::size_t PacketUtils::HEADER_PACKET_SIZE = sizeof(HeaderPacket);
 const std::size_t PacketUtils::DATA_PACKET_FIXED_SIZE = sizeof(DataPacket) - sizeof(std::vector<uint64_t>) - sizeof(std::vector<std::complex<short>>);
@@ -92,7 +93,7 @@ void PacketUtils::parseDataPacket(const std::vector<char>& packet, DataPacket& d
 
     uint64_t timesampleSize = num_peaks * sizeof(uint64_t);
     uint64_t waveformSamplesSize = packet.size() - DATA_PACKET_FIXED_SIZE - timesampleSize;
-    size_t waveformSamplesCount = waveformSamplesSize / sizeof(std::complex<short>);
+    size_t   waveformSamplesCount = waveformSamplesSize / sizeof(std::complex<short>);
 
     data.peak_timestamps.resize(num_peaks);
     data.waveformSamples.resize(waveformSamplesCount);
@@ -103,6 +104,58 @@ void PacketUtils::parseDataPacket(const std::vector<char>& packet, DataPacket& d
     packetDataPtr += timesampleSize;
     
     std::memcpy(data.waveformSamples.data(), packetDataPtr, waveformSamplesSize);
+}
+
+void PacketUtils::createControlPacket(const ControlMessage& message, std::vector<char>& packet)
+{
+    std::string serialized_message;
+    serialized_message = serializeControlMessage(message);
+    packet = std::vector<char>(serialized_message.begin(), serialized_message.end());
+
+}
+
+void PacketUtils::parseControlPacket(const std::vector<char>& packet, ControlMessage& message)
+{
+    const std::string serializedString =  std::string(packet.begin(), packet.end());
+    deserializeControlMessage(serializedString, message);
+
+}
+
+std::string PacketUtils::serializeControlMessage(const ControlMessage& message)
+{
+    std::ostringstream oss;
+    oss << message.rx_id << "$" << message.ack << "$";
+    for (const auto& msg : message.message)
+    {
+        oss << msg.size() << ":" << msg << "$";
+    }
+    return oss.str();
+}
+
+void PacketUtils::deserializeControlMessage(const std::string& serializedMessage, ControlMessage& message)
+{
+    std::istringstream iss(serializedMessage);
+    std::string rxIdStr, ackStr;
+    std::getline(iss, rxIdStr, '$');
+    std::getline(iss, ackStr, '$');
+    message.rx_id = std::stoul(rxIdStr);
+    message.ack = std::stoul(ackStr);
+
+    message.message.clear();
+    std::string msg;
+    while (std::getline(iss, msg, ':'))
+    {
+        std::size_t size = std::stoul(msg);
+        std::getline(iss, msg, '$');
+        std::cout << "message: " << msg << std::endl;
+        // Check if there is a newline character at the end of the message and remove it
+        if (!msg.empty() && msg.back() == '\n')
+        {
+            msg.pop_back();
+        }
+
+        message.message.emplace_back(msg.substr(0, size));
+    }
 }
 
 

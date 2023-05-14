@@ -79,5 +79,30 @@ int main()
     }
     std::cout << std::endl;
 
+    // Create control packet
+    ControlMessage cm;
+    cm.rx_id = 1;
+    cm.ack = 0;
+    cm.message.emplace_back("config");
+    cm.message.emplace_back("ack");
+    cm.message.emplace_back("sync");
+
+    std::vector<char> controlPacketBuffer;
+    PacketUtils::createControlPacket(cm, controlPacketBuffer);
+
+    // Parse control packet
+    // Parse the data packet
+    ControlMessage parsedCM;
+    PacketUtils::parseControlPacket(controlPacketBuffer, parsedCM);
+
+    //Print parsed control message;
+    std::cout <<"Parsed rx id: " << parsedCM.rx_id << std::endl;
+    std::cout <<"Parsed ack  : " << parsedCM.ack << std::endl;
+    std::cout <<"Parsed messages: " << std::endl;
+    for(std::string msg:parsedCM.message)
+    {
+        std::cout << msg<<std::endl;
+    }
+
     return 0;
 }

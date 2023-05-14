@@ -19,7 +19,7 @@ typedef enum packetType_e
     PACKET_TYPE_MIN_INVALID = -1,
     PACKET_TYPE_CONTROL_MESSAGE,
     PACKET_TYPE_CONTROL_MESSAGE_RESPONSE,
-    PACKET_TYPE_STREAM_DATA,
+    PACKET_TYPE_DATA,
     PACKET_TYPE_MAX
 } packetType;
 
@@ -31,9 +31,16 @@ typedef struct HeaderPacket_s
     uint64_t  packet_length;
 } HeaderPacket;
 
+typedef struct ControlMessage_s
+{
+    uint32_t rx_id;
+    uint32_t ack;
+    std::vector<std::string> message; //includes configuration/ack/nack/other information. Pattern: size:message.
+}ControlMessage;
+
 typedef struct DataPacket_s
 {
-    uint64_t  rx_id;
+    uint64_t rx_id;
     double   longitude;
     double   latitude;
     double   altitude;
