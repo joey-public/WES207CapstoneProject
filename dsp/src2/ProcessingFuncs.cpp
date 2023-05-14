@@ -32,3 +32,17 @@ int detect_threshold(std::vector<float>& values, float threshold)
     // Return -1 if no element is greater than the threshold
     return -1;
 }
+
+std::vector<std::complex<float>> xcorr_eigen(const std::vector<std::complex<float>>& signalA, const std::vector<std::complex<float>>& signalB) 
+{
+    std::size_t resultSize = signalA.size() + signalB.size() - 1;
+    std::vector<std::complex<float>> result(resultSize);
+
+    Eigen::Map<const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1>> eigenSignalA(signalA.data(), signalA.size());
+    Eigen::Map<const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1>> eigenSignalB(signalB.data(), signalB.size());
+    Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1>> eigenResult(result.data(), resultSize);
+
+    eigenResult = eigenSignalA.reverse().asDiagonal() * eigenSignalB;
+
+    return result;
+}

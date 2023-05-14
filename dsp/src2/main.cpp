@@ -4,8 +4,6 @@
 #include <atomic>
 #include <uhd/utils/safe_main.hpp>
 
-#include <Eigen/Dense>
-
 #include "include/UsrpInitFuncs.h"
 #include "include/UsrpRxStreamFuncs.h"
 #include "include/ProcessingFuncs.h"
@@ -13,14 +11,10 @@
 
 using Eigen::MatrixXd;
  
-void eigen_test()
+
+void test_processing()
 {
-  MatrixXd m(2,2);
-  m(0,0) = 3;
-  m(1,0) = 2.5;
-  m(0,1) = -1;
-  m(1,1) = m(1,0) + m(0,1);
-  std::cout << m << std::endl;
+    
 }
 
 int UHD_SAFE_MAIN(int argc, char* argv[])
