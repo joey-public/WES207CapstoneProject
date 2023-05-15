@@ -9,19 +9,19 @@
 #include "include/ProcessingFuncs.h"
 #include "include/UtilFuncs.h"
 
+
+//#define ENABLE_TESTS
+
 using Eigen::MatrixXd;
  
-
-void test_processing()
-{
-    
-}
-
 int UHD_SAFE_MAIN(int argc, char* argv[])
 {
     std::cout << "Host Application Launched" << std::endl;
-    eigen_test();
     std::cout << "Boost Version: " << BOOST_VERSION << std::endl;
+    
+
+#ifdef ENABLE_TESTS
+#endif
     
     //usrp settings
     std::string ip = "192.168.11.2";
@@ -41,7 +41,7 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
     
     //cacl buffer size for desired time
     //DO NOT MAKE stream time < 1, this will cause seg fault for some reason...
-    int stream_time = 1;//seconds
+    int stream_time = 3;//seconds
     size_t buffer_sz = stream_time * usrp->get_rx_rate();
 
     //fill the buffer with data from the usrp
@@ -55,17 +55,21 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
     std::cout << "\tBuffer length: " << buffer_sz << std::endl;
     std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
 
+    //save data to file
+    std::cout << "Saving Raw data to txt file\n";
+    std::string data_file_path = "./raw_data.txt"; 
+    save_complex_vec_to_file(data_buffer, data_file_path);
    
     //process the data
-    process_data(data_buffer);
-    
-    //save data to file
-//    std::string data_file_path = "./test.txt"; 
-//    save_raw_data_to_file(data_buffer, data_file_path);
+//    process_data(data_buffer);
+    std::cout << "Processing the data\n\tTaking the magnitude...";
+    std::vector<float> mag_data = calc_mag(data_buffer);
 
-//    //plot the data (using python)
-//    std::string py_script_path = "./plot_data.py"; 
-//    plot_with_python(py_script_path, data_file_path)
+    //save data to file
+    std::cout << "Saving Mag data to txt file\n";
+    data_file_path = "./mag_data.txt"; 
+    save_float_vec_to_file(mag_data, data_file_path);
+
 
     std::cout << "Host Application ended" << std::endl;
 
