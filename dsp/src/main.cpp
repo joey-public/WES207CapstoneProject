@@ -12,7 +12,7 @@
 #include "include/Tests.h"
 
 #define ENABLE_TESTS
-//#define ENABLE_USRP
+#define ENABLE_USRP
 
 using Eigen::MatrixXd;
  
@@ -22,26 +22,7 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
     std::cout << "Boost Version: " << BOOST_VERSION << std::endl;
 
 #ifdef ENABLE_TESTS
-    std::cout << "Running Tests..." << std::endl;
-    if (!(test_calc_mag()))
-    {
-        std::cout << "\tcalc_mag() failed!" << std::endl;
-        return 0;
-    }
-    else
-    {
-        std::cout << "\tcalc_mag() passed!" << std::endl;
-    }
-
-    if (!(test_calc_phase()))
-    {
-        std::cout << "\tcalc_phase() failed!" << std::endl;
-        return 0;
-    }
-    else
-    {
-        std::cout << "\tcalc_phase() passed!" << std::endl;
-    }
+    run_all_tests();
 #endif
     
 #ifdef ENABLE_USRP
@@ -63,7 +44,7 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
     
     //cacl buffer size for desired time
     //DO NOT MAKE stream time < 1, this will cause seg fault for some reason...
-    int stream_time = 3;//seconds
+    int stream_time = 5;//seconds
     size_t buffer_sz = stream_time * usrp->get_rx_rate();
 
     //fill the buffer with data from the usrp
@@ -83,14 +64,32 @@ int UHD_SAFE_MAIN(int argc, char* argv[])
     save_complex_vec_to_file(data_buffer, data_file_path);
    
     //process the data
-//    process_data(data_buffer);
     std::cout << "Processing the data\n\tTaking the magnitude...";
     std::vector<float> mag_data = calc_mag(data_buffer);
-
     //save data to file
     std::cout << "Saving Mag data to txt file\n";
     data_file_path = "./mag_data.txt"; 
     save_float_vec_to_file(mag_data, data_file_path);
+
+    float threshold = 0.01;
+    float save_time = 0.02;//20ms 
+    int offset_time = 0*usrp->get_rx_rate();
+    int start_idx = detect_threshold(mag_data, threshold, offset_time);
+    if (start_idx < 0)
+    {
+        std::cout << "No Peak Detected...\n";
+    }
+    else
+    {
+        std::cout << "Pulse Detected starting at index: " << start_idx << std::endl;
+        int k = int(save_time * usrp->get_rx_rate());
+        std::vector<std::complex<float>> pulse_data = get_subvec(data_buffer, start_idx, k);
+        //save data to file
+        std::cout << "Saving Pulse data to txt file\n";
+        data_file_path = "./pulse_data.txt"; 
+        save_complex_vec_to_file(pulse_data, data_file_path);
+    }
+
 #endif
 
 

@@ -1,5 +1,27 @@
 #include "include/Tests.h"
 
+void run_all_tests()
+{
+    std::cout << "Running Tests..." << std::endl;
+    if (!(test_calc_mag()))
+    {
+        std::cout << "\tcalc_mag() failed!" << std::endl;
+    }
+    else
+    {
+        std::cout << "\tcalc_mag() passed!" << std::endl;
+    }
+
+    if (!(test_calc_phase()))
+    {
+        std::cout << "\tcalc_phase() failed!" << std::endl;
+    }
+    else
+    {
+        std::cout << "\tcalc_phase() passed!" << std::endl;
+    }
+}
+
 bool test_calc_mag()
 {
     std::cout << "Running test_calc_mag()\n";

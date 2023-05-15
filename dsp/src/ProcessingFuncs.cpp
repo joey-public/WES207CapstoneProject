@@ -5,7 +5,7 @@ void process_data(std::vector<std::complex<float>> &data_buff)
     std::cout << "Processing Data..." << std::endl;
     std::vector<float> data_mag = calc_mag(data_buff);
     float thresh = 1.0;
-    int n = detect_threshold(data_mag, thresh);
+    //int n = detect_threshold(data_mag, thresh);
     //optional perform xcorr here
     std::cout << "Done Processing Data..." << std::endl;
 }
@@ -32,7 +32,7 @@ std::vector<float> calc_phase(std::vector<std::complex<float>>& complexVector)
     return phases;
 }
 
-int detect_threshold(std::vector<float>& values, float threshold) 
+int detect_threshold(std::vector<float>& values, float threshold, int offset) 
 {
     for (std::size_t i = 0; i < values.size(); ++i) {
         if (values[i] > threshold) {

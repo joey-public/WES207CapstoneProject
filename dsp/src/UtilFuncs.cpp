@@ -67,3 +67,21 @@ void plot_with_python(std::string python_file, std::string data_path, std::strin
         std::cout << "Python Script Failed...." << std::endl;
     }
 }
+
+std::vector<std::complex<float>> get_subvec(const std::vector<std::complex<float>>&in_vec, 
+                                           int start_idx, int k)
+{
+    if(start_idx + k > in_vec.size())
+    {
+        std::cout << "invalid range of start_idx+k is too large...\n";
+        return in_vec;
+    }
+    std::vector<std::complex<float>> out_vec(k);
+    int j = 0;
+    for(int i = start_idx; i < start_idx + k; i++)
+    {
+        out_vec[j] = in_vec[i]; 
+        j += 1;
+    }
+    return out_vec;
+}

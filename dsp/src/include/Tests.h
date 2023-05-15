@@ -6,6 +6,7 @@
 #include <vector>
 #include "../include/ProcessingFuncs.h"
 
+void run_all_tests();
 bool test_calc_mag();
 bool test_calc_phase();
 bool test_detect_threshold();

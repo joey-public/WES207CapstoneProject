@@ -27,4 +27,7 @@ void save_float_vec_to_file(const std::vector<float> &vec,
 
 void plot_with_python(std::string python_file, std::string data_path, std::string image_path);
 
+std::vector<std::complex<float>> get_subvec(const std::vector<std::complex<float>> &in_vec, 
+                                           int start_idx, int k);
+
 #endif
