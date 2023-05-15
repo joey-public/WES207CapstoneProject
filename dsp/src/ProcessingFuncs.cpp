@@ -18,8 +18,18 @@ std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector)
         float magnitude = std::abs(complexNumber);
         magnitudes.push_back(magnitude);
     }
-
     return magnitudes;
+}
+
+std::vector<float> calc_phase(std::vector<std::complex<float>>& complexVector) 
+{
+    std::vector<float> phases;
+    phases.reserve(complexVector.size());
+    for (const auto& complexNumber : complexVector) {
+        float phase = std::arg(complexNumber);
+        phases.push_back(phase);
+    }
+    return phases;
 }
 
 int detect_threshold(std::vector<float>& values, float threshold) 

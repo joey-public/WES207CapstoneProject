@@ -28,6 +28,8 @@ find_package(UHD 4.1.0 REQUIRED)
 # To specify an exact version:
 #find_package(UHD 4.0.0 EXACT REQUIRED)
 
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 # This example also requires Boost.
 # Set components here, then include UHDBoost to do the actual finding
 set(UHD_BOOST_REQUIRED_COMPONENTS
@@ -47,7 +49,7 @@ include_directories(
 link_directories(${Boost_LIBRARY_DIRS})
 
 ### Make the executable #######################################################
-add_executable(main main.cpp UsrpInitilizer.cpp UsrpRxStreamer.cpp)
+add_executable(main main.cpp UsrpInitFuncs.cpp UsrpRxStreamFuncs.cpp ProcessingFuncs.cpp UtilFuncs.cpp Tests.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")
@@ -56,6 +58,9 @@ message(STATUS "* compiler flags. This is just an example, so it's unlikely thes
 message(STATUS "* exactly match what you require. Make sure to double-check compiler and     ")
 message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
+
+
+target_link_libraries (main Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
