@@ -2,7 +2,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <fstream>
 #include <istream>
-#include <gnuplot-iostream.h>
+//#include <gnuplot-iostream.h>
 
 typedef struct md_time_data_s
 {
