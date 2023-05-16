@@ -8,7 +8,7 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
                         size_t buff_sz, std::complex<float>* recv_ptr)
 {
     
-    std::cout << "Start Streaming Data..." << std::endl;
+//    std::cout << "Start Streaming Data..." << std::endl;
 
     std::string cpu_fmt = "fc32";
     std::string wire_fmt = "sc16";
@@ -19,8 +19,8 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
     size_t recv_pkt_sz = rx_stream->get_max_num_samps();
     float recv_pkt_dt = recv_pkt_sz / usrp->get_rx_rate();
 
-    std::cout << "RX Buff Size: " << std::to_string(recv_pkt_sz) << std::endl;
-    std::cout << "\t pkt dt = " << std::to_string(recv_pkt_sz)
+    std::cout << "\tRX Buff Size: " << std::to_string(recv_pkt_sz) << std::endl;
+    std::cout << "\tpkt dt = " << std::to_string(recv_pkt_sz)
                                 << " samples / " 
                                 << std::to_string(usrp->get_rx_rate() / 1e6)  
                                 << " Mhz = " 
@@ -53,7 +53,7 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
     stream_cmd.stream_mode = uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS;
     rx_stream->issue_stream_cmd(stream_cmd);
 
-    std::cout << "Stop Streaming Data..." << std::endl;
+//    std::cout << "Stop Streaming Data..." << std::endl;
 }
 
 //currently NOP
