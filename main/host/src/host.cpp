@@ -2,6 +2,7 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <fstream>
 #include <istream>
+#include "PacketUtils.h"
 //#include <gnuplot-iostream.h>
 
 typedef struct md_time_data_s
@@ -22,7 +23,9 @@ Client::Client(boost::asio::io_context& io_context,
       is_configured_(false),
       is_synchronized_(false),
       is_streaming_(false),
-      usrp_ip_(usrp_ip)
+      usrp_ip_(usrp_ip),
+      stream_seq_id(0),
+      stream_pkt_id(0)
 {
       
 }
@@ -146,7 +149,16 @@ void Client::start_streaming()
     std::cout << "Starting streaming..." << std::endl;
     // start streaming here
     is_streaming_ = true;
+    //stream data store it in a vector. Also store toa of all the packets.
     recv_to_file();
+    
+    //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
+    if (is_streaming_)
+    {
+        std::unique_lock<std::mutex> lock(mutex_host);
+        is_streaming_ = false;
+        conditionVariable_host.notify_one();
+    }
     
     std::cout << "Streaming stopped." << std::endl;
 }
@@ -221,25 +233,96 @@ void Client::control_command_handler()
 
 void Client::dsp_handler()
 {   
+    std::unique_lock<std::mutex> lock(mutex_host);
     while (true) 
     {
-        if (is_streaming_) 
-        {
-            // perform DSP and find peak
-            Sample sample;
-            sample.client_id = client_id_;
-            sample.timestamp = 0.0; // replace with actual timestamp
-            sample.peak = 0.0; // replace with actual peak value
-            send_sample(sample);
-        }
+        conditionVariable_host.wait(lock,[this] {return !is_streaming_;}); //return if is_streaming is still true
+        ++stream_pkt_id;
+
+        //create packet
+
+        //call async send
+       
         // sleep for some time before performing next DSP
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));//just to give breatihing space.
+        is_streaming_ = true; //reset this case as non streaming case has been handled
     }
+}
+
+void handleSend(const boost::system::error_code& error, std::size_t bytes_transferred)
+{
+    if (!error)
+    {
+        // Send operation completed successfully
+        // You can perform any necessary actions here
+        std::cout << "Send operation completed successfully" << std::endl;
+    }
+    else
+    {
+        // Handle send error
+        // You can implement appropriate error handling mechanisms here
+        std::cerr << "Send error: " << error.message() << std::endl;
+    }
+}
+
+void Client::send_dsp_data()
+{
+        //create header
+        HeaderPacket header;
+        header.packet_id = stream_pkt_id;
+        header.pkt_ts = 0;
+        header.packet_type = PACKET_TYPE_DATA;
+
+        DataPacket data;
+        data.rx_id = 0; //server needs to send the unique id
+        data.peak_timestamps = &peak_timestamp_;
+        data.numTimeSamples = data.peak_timestamps->size();
+
+        data.latitude  = -10.2;//constants
+        data.longitude = -11.2;
+        data.altitude  = 10;
+        data.waveformSamples = NULL; //not sending the waveform.
+        header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps->size()+data.waveformSamples->size();
+
+        
+        size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
+        // Create a packet buffer to store the header packet
+        std::vector<char> headerPacketBuffer(header_size);
+        PacketUtils::createHeaderPacket(header, headerPacketBuffer);
+        
+         // Create a packet buffer to store the data packet
+        std::size_t packetSize = PacketUtils::DATA_PACKET_FIXED_SIZE 
+        + data.peak_timestamps->size() * sizeof(double) 
+        + data.waveformSamples->size() * sizeof(std::complex<short>);
+        std::vector<char> dataPacketBuffer(packetSize);
+        PacketUtils::createDataPacket(data, dataPacketBuffer);
+
+        // Asynchronously send the header
+        boost::asio::async_write(socket_, boost::asio::buffer(headerPacketBuffer),
+        [&](const boost::system::error_code& error, std::size_t bytes_transferred)
+        {
+            if (!error)
+            {
+                // Header sent successfully, now send the data
+                    boost::asio::async_write(socket_, boost::asio::buffer(dataPacketBuffer),
+                    [&](const boost::system::error_code& error, std::size_t bytes_transferred)
+                    {
+                        handleSend(error, bytes_transferred);
+                    });
+            }
+            else
+            {
+                handleSend(error, bytes_transferred);
+            }
+        });
+
+
 }
 
 
 void Client::recv_to_file(void)
 {
+    uint64_t sim_timestamp_count = 0;
     std::string type                = "short";
     std::string wire_format         = "sc16"; 
     std::string cpu_format          = "sc16";
@@ -348,6 +431,18 @@ void Client::recv_to_file(void)
                 }
                 md_time_info.full_secs = md.time_spec.get_full_secs();
                 md_time_info.frac_secs = md.time_spec.get_frac_secs();
+                stream_seq_id++;
+                //Just queue timestamp assuming 
+                if(stream_seq_id%333 == 0 && !sim_timestamp_count)
+                {
+                    peak_timestamp_.push_back((md_time_info.full_secs+md_time_info.frac_secs));
+                    if(stream_seq_id == 333)
+                    {
+                        sim_timestamp_count = 1;
+                        std::cout << "Total time sample collected:" << peak_timestamp_.size() <<std::endl;
+                    }
+                }
+
 #if 0
                 std::cout << boost::format(
                              "Received packet: %u samples, %u full secs, %f frac secs")

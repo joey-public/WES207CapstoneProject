@@ -1,11 +1,4 @@
 #
-# Copyright 2014-2015 Ettus Research LLC
-# Copyright 2018 Ettus Research, a National Instruments Company
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-#
-
-#
 # Capstone Project for WES-207
 # UCSD MAS
 #
@@ -47,6 +40,7 @@ include(UHDBoost)
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${UHD_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR}/../common/include
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/src
 )
@@ -56,7 +50,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_executable(host 
         ${CMAKE_SOURCE_DIR}/src/main.cpp 
         ${CMAKE_SOURCE_DIR}/src/host.cpp
-        ${CMAKE_SOURCE_DIR}/src/UsrpInitilizer.cpp)
+        ${CMAKE_SOURCE_DIR}/src/UsrpInitilizer.cpp
+        ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")

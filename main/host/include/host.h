@@ -45,9 +45,15 @@ private:
     int client_id_;
     bool is_configured_;
     bool is_synchronized_;
-    bool is_streaming_;
+    std::atomic<bool> is_streaming_;
+    std::condition_variable conditionVariable_host; //to block thread and wait for event.
+    std::mutex mutex_host;
     UsrpInitilizer* usrp_handler = NULL;
     void recv_to_file(void);
+    std::vector<double> peak_timestamp_;
+    uint64_t stream_seq_id;
+    uint64_t stream_pkt_id;
+    void send_dsp_data();
 };
 
 #endif//__HOST_H__
