@@ -240,7 +240,7 @@ void Client::dsp_handler()
         ++stream_pkt_id;
 
         //create packet
-
+        send_dsp_data();
         //call async send
        
         // sleep for some time before performing next DSP
