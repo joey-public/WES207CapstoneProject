@@ -1,10 +1,12 @@
 #
-# Capstone Project for WES-207
-# UCSD MAS
+# Copyright 2014-2015 Ettus Research LLC
+# Copyright 2018 Ettus Research, a National Instruments Company
 #
-# 
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+
 cmake_minimum_required(VERSION 3.5.1)
-project(HOST CXX)
+project(INIT_USRP CXX)
 
 ### Configure Compiler ########################################################
 set(CMAKE_CXX_STANDARD 11)
@@ -25,6 +27,7 @@ find_package(UHD 4.1.0 REQUIRED)
 # The version in  ^^^^^  here is a minimum version.
 # To specify an exact version:
 #find_package(UHD 4.0.0 EXACT REQUIRED)
+
 find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 # This example also requires Boost.
@@ -33,6 +36,7 @@ set(UHD_BOOST_REQUIRED_COMPONENTS
     program_options
     system
     thread
+    atomic
 )
 set(BOOST_MIN_VERSION 1.65)
 include(UHDBoost)
@@ -41,38 +45,33 @@ include(UHDBoost)
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${UHD_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/../common/include
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/src
 )
 link_directories(${Boost_LIBRARY_DIRS})
 
 ### Make the executable #######################################################
-add_executable(host 
-        ${CMAKE_SOURCE_DIR}/src/main.cpp 
-        ${CMAKE_SOURCE_DIR}/src/host.cpp
-        ${CMAKE_SOURCE_DIR}/src/UsrpInitilizer.cpp
-        ${CMAKE_SOURCE_DIR}/src/UsrpRxStreamFuncs.cpp
-        ${CMAKE_SOURCE_DIR}/src/ProcessingFuncs.cpp
-        ${CMAKE_SOURCE_DIR}/src/UtilFuncs.cpp
-        ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
+add_executable(main main.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")
+message(STATUS "* NOTE: When building your own app, you probably need all kinds of different  ")
+message(STATUS "* compiler flags. This is just an example, so it's unlikely these settings    ")
+message(STATUS "* exactly match what you require. Make sure to double-check compiler and     ")
+message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
 
-target_link_libraries (host Eigen3::Eigen) 
+
+target_link_libraries (main Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 if(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against shared UHD library.")
-    target_link_libraries(host ${UHD_LIBRARIES} ${Boost_LIBRARIES})
+    target_link_libraries(main ${UHD_LIBRARIES} ${Boost_LIBRARIES})
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 else(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against static UHD library.")
-    target_link_libraries(host
+    target_link_libraries(main
         # We could use ${UHD_LIBRARIES}, but linking requires some extra flags,
         # so we use this convenience variable provided to us
         ${UHD_STATIC_LIB_LINK_FLAG}

@@ -3,7 +3,14 @@
 #include <fstream>
 #include <istream>
 #include "PacketUtils.h"
+
+#include "UsrpRxStreamFuncs.h"
+#include "UtilFuncs.h"
+#include "ProcessingFuncs.h"
+
 //#include <gnuplot-iostream.h>
+
+//#define SAVE_DATA
 
 typedef struct md_time_data_s
 {
@@ -146,11 +153,77 @@ void Client::synchronize_pps()
 
 void Client::start_streaming()
 {
-    std::cout << "Starting streaming..." << std::endl;
-    // start streaming here
+    uhd::usrp::multi_usrp::sptr usrp = usrp_handler->get_usrp(); 
+
     is_streaming_ = true;
-    //stream data store it in a vector. Also store toa of all the packets.
-    recv_to_file();
+
+    //calc buffer size for desired time
+    int stream_time = 3;//seconds
+    size_t buffer_sz = stream_time * usrp->get_rx_rate();
+
+    //Stream the raw data
+    //fill the buffer with data from the usrp
+    std::vector<std::complex<float>> data_buffer(buffer_sz);
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Start Streaming Data..." << std::endl;
+    stream_rx_data(usrp, buffer_sz, &data_buffer.front());
+    std::cout << "Stop Streaming Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+
+    //Analyze the raw data
+    std::cout << "Analyzing Raw Data..." << std::endl;
+    float buff_mem = sizeof(std::complex<float>) * buffer_sz;//bytes 
+    //print stats about size of data buffer
+    std::cout << "\tCollected " << stream_time << "s of raw data at fs = "
+              << usrp->get_rx_rate() << std::endl;
+    std::cout << "\tBuffer length: " << buffer_sz << std::endl;
+    std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+    //save data to file
+#ifdef SAVE_DATA
+    std::cout << "\tSaving Raw data to txt file\n";
+    std::string data_file_path = "./raw_data.txt"; 
+    save_complex_vec_to_file(data_buffer, data_file_path);
+#endif
+    std::cout << "Done Analyzing Raw Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+    
+    //Process the data
+    std::cout << "Start Processing Data..." << std::endl;
+    float threshold = 0.01;
+    float save_time = 0.02;//20ms 
+    int offset_time = 0*usrp->get_rx_rate();
+    std::cout << "\tTakeing the magnitude..." << std::endl;
+    std::vector<float> mag_data = calc_mag(data_buffer);
+    buff_mem = sizeof(float) * mag_data.size();//bytes 
+    std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+    //save data to file
+#ifdef SAVE_DATA
+    std::cout << "\tSaving Mag data to txt file...\n";
+    data_file_path = "./mag_data.txt"; 
+    save_float_vec_to_file(mag_data, data_file_path);
+#endif
+    std::cout << "\tDoing threshold detection..." << std::endl;
+    int start_idx = detect_threshold(mag_data, threshold, offset_time);
+    if (start_idx < 0)
+    {
+        std::cout << "\tNo Peak Detected...\n";
+    }
+    else
+    {
+        std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
+        int k = int(save_time * usrp->get_rx_rate());
+        std::vector<std::complex<float>> pulse_data = get_subvec(data_buffer, start_idx, k);
+        buff_mem = sizeof(std::complex<float>) * pulse_data.size();//bytes 
+        std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+        //save data to file
+#ifdef SAVE_DATA
+        std::cout << "\tSaving Pulse data to txt file\n";
+        data_file_path = "./pulse_data.txt"; 
+        save_complex_vec_to_file(pulse_data, data_file_path);
+#endif
+    }
+    std::cout << "Stop Processing Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
     
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)
@@ -160,7 +233,7 @@ void Client::start_streaming()
         conditionVariable_host.notify_one();
     }
     
-    std::cout << "Streaming stopped." << std::endl;
+    std::cout << "Streaming Done!" << std::endl;
 }
 
 void Client::stop_streaming()
