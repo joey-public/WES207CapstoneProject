@@ -178,7 +178,7 @@ void Client::start_streaming()
               << usrp->get_rx_rate() << std::endl;
     std::cout << "\tBuffer length: " << buffer_sz << std::endl;
     std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-    //save data to file
+    //save data to file (optional)
 #ifdef SAVE_DATA
     std::cout << "\tSaving Raw data to txt file\n";
     std::string data_file_path = "./raw_data.txt"; 
@@ -196,7 +196,7 @@ void Client::start_streaming()
     std::vector<float> mag_data = calc_mag(data_buffer);
     buff_mem = sizeof(float) * mag_data.size();//bytes 
     std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-    //save data to file
+    //save data to file (optional)
 #ifdef SAVE_DATA
     std::cout << "\tSaving Mag data to txt file...\n";
     data_file_path = "./mag_data.txt"; 
@@ -206,13 +206,16 @@ void Client::start_streaming()
     int start_idx = detect_threshold(mag_data, threshold, offset_time);
     if (start_idx < 0)
     {
+        this->peak_timestamp_.push_front(0.0); 
         std::cout << "\tNo Peak Detected...\n";
     }
     else
     {
+        this->peak_timestamp_.push_front(stdstart_idx / usrp->get_rx_rate());  
         std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
         int k = int(save_time * usrp->get_rx_rate());
-        std::vector<std::complex<float>> pulse_data = get_subvec(data_buffer, start_idx, k);
+        //save the pulse into a vector
+        this->waveform_data_ = get_subvec(data_buffer, start_idx, k);
         buff_mem = sizeof(std::complex<float>) * pulse_data.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
         //save data to file
@@ -224,6 +227,10 @@ void Client::start_streaming()
     }
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
+
+    std::cout << "Sending Packet to Host Controller..." << std::endl;
+    //send packet to host_controller
+    send_dsp_data();
     
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)

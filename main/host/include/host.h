@@ -51,6 +51,7 @@ private:
     UsrpInitilizer* usrp_handler = NULL;
     void recv_to_file(void);
     std::vector<double> peak_timestamp_;
+    std::vector<std::complex<float>> waveform_samples_;
     uint64_t stream_seq_id;
     uint64_t stream_pkt_id;
     void send_dsp_data();
