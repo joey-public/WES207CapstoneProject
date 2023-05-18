@@ -29,6 +29,9 @@ option(UHD_USE_STATIC_LIBS OFF)
 
 # To add UHD as a dependency to this project, add a line such as this:
 find_package(UHD 4.1.0 REQUIRED)
+
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 # The version in  ^^^^^  here is a minimum version.
 # To specify an exact version:
 #find_package(UHD 4.0.0 EXACT REQUIRED)
@@ -64,6 +67,8 @@ message(STATUS "* compiler flags. This is just an example, so it's unlikely thes
 message(STATUS "* exactly match what you require. Make sure to double-check compiler and     ")
 message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
+
+target_link_libraries (main Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
