@@ -57,7 +57,7 @@ void Client::start()
 #endif
     boost::asio::write(socket_, boost::asio::buffer("This is Client"));
     control_command_thread_ = std::thread(&Client::control_command_handler, this);
-    dsp_thread_ = std::thread(&Client::dsp_handler, this);
+//    dsp_thread_ = std::thread(&Client::dsp_handler, this);
 }
 
 void Client::stop()
