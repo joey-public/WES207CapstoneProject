@@ -40,15 +40,13 @@ void Client::start()
     boost::asio::connect(socket_, endpoints);
     std::cout << "Connected to server." << std::endl;
 
-#if 0
     // Get assigned client ID from server
     boost::asio::streambuf response_buffer;
     boost::asio::read_until(socket_, response_buffer, '\n');
     std::istream response_stream(&response_buffer);
     response_stream >> client_id_;
     std::cout << "Assigned client ID: " << client_id_ << std::endl;
-#endif
-    boost::asio::write(socket_, boost::asio::buffer("This is Client"));
+    
     control_command_thread_ = std::thread(&Client::control_command_handler, this);
     //dsp_thread_ = std::thread(&Client::dsp_handler, this);
 }

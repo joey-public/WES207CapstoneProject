@@ -24,8 +24,20 @@ int main(int argc, char* argv[])
             io_context.run();
         });
 
+         #if 0
+        /** Would be useful when all clients are sending data*/
+        std::vector<std::thread> threads;
+        for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i)
+        {
+            threads.emplace_back([&io_context]() 
+            { io_context.run(); 
+            
+            });
+        }
+        #endif
+
         // Wait for all clients to connect
-        while (server.get_connected_clients().size() < 1) 
+        while (server.get_connected_clients().size() < Server::num_max_supported_client)
         {
           //std::cout << "Still waiting for more clients" << std::endl;
           std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -38,7 +50,7 @@ int main(int argc, char* argv[])
         std::string command;
         while (std::getline(std::cin, command)) 
         {
-            if (command == "config" || command == "sync" || command == "stream" || command == "stop") 
+            if (command == "config" || command == "sync" || command == "stream" || command == "stop"|| command == "send")
             {
                 server.broadcast_control_command(command);
             }
@@ -57,6 +69,11 @@ int main(int argc, char* argv[])
             else
             {
               std::cout << "Unknown command \"" << command << "\"" << std::endl;
+            }
+            //receive data
+            if(command == "send")
+            {
+              server.read_from_client();
             }
         }
           // Join the localization thread

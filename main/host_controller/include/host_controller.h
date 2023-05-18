@@ -8,21 +8,9 @@
 #include <map>
 #include <boost/asio.hpp>
 #include <boost/thread/mutex.hpp>
+#include "PacketUtils.h"
 
-struct Sample 
-{
-    uint64_t client_id;
-    uint64_t timestamp;
-    std::vector<uint8_t> data;
-};
-
-struct Response 
-{
-    bool success;
-    std::string message;
-};
-
-class Server 
+class Server:public std::enable_shared_from_this<Server>
 {
 public:
     Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num);
@@ -35,24 +23,32 @@ public:
     void run_localization();
     void accept_connection();
     std::thread localization_thread_;
+    static const uint32_t num_max_supported_client;
+    void read_from_client();
 
 private:
     void handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,const boost::system::error_code& error);
-    void read_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket);
-    void handle_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket, std::shared_ptr<Sample> sample, const boost::system::error_code& error, std::size_t bytes_transferred);
     void configure_usrp(uint64_t client_id, std::string argument);
     void synchronize_pps(uint64_t client_id, std::string argument);
     void start_streaming(uint64_t client_id, std::string argument);
     void stop_streaming(uint64_t client_id, std::string argument);
     void handle_client_disconnection(uint64_t client_id);
     void io_context_run();
+    void handleHeaderPacket(const HeaderPacket& packet);
+    void readHeaderPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id);
+    void handleHeaderPacket(const HeaderPacket& packet, std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id);
+    void startReadingDataPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id, size_t packet_length);
+    void handleDataPacket(uint64_t, const DataPacket& packet);
+    //void readControlMessage(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id);
    
 
     boost::asio::io_context io_context_;
     boost::asio::ip::tcp::acceptor acceptor_;
     std::map<uint64_t, std::shared_ptr<boost::asio::ip::tcp::socket>> sockets_;
-    std::map<uint64_t, std::queue<Sample>> sample_buffers_;
-    std::queue<Sample> localization_queue_;
+    std::map<uint64_t, std::queue<DataPacket>> client_buffers_;
+    boost::mutex client_buffers_mutex_;
+    std::map<uint64_t, std::queue<std::vector<double>>> localization_queue_;
+    boost::mutex localization_queue_mutex_;
     std::map<std::string, std::function<void(uint64_t, std::string)>> command_handlers_;
     uint64_t next_client_id_;
     boost::mutex sockets_mutex_;

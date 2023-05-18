@@ -5,6 +5,17 @@
 #include <vector>
 #include <complex>
 //add log entry exit
+typedef enum class ControlMessageCommands_e
+{
+    ControlMessageCommandInvalid = -1,
+    config,
+    sync,
+    stream,
+    sendData,
+    powerSave,
+    MAXControlMessageCommand
+}ControlMessageCommands;
+
 
 typedef enum app_result_e
 {

@@ -3,19 +3,15 @@
 #include <thread>
 #include <string>
 #include <boost/bind.hpp>
+#include <memory>
 
+const uint32_t Server:: num_max_supported_client = 2;
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
 next_client_id_(0),
 server_addr_(addr)
 {
     server_port_ = std::stoi(port_num);
-    #if 0
-    command_handlers_["configure_usrp"] = [this](uint64_t client_id, std::string argument){return this->Server::configure_usrp(client_id, argument);};
-    command_handlers_["synchronize_pps"] = [this](uint64_t client_id, std::string argument){return this->Server::synchronize_pps(client_id, argument);};
-    command_handlers_["start_streaming"] = [this](uint64_t client_id, std::string argument){return this->Server::start_streaming(client_id, argument);};
-    command_handlers_["stop_streaming"] = [this](uint64_t client_id, std::string argument){return this->Server::stop_streaming(client_id, argument);};
-    #endif
 }
 
 void Server::start()
@@ -25,7 +21,7 @@ void Server::start()
     acceptor_.open(endpoint.protocol());
     acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
     acceptor_.bind(endpoint);
-    acceptor_.listen();//was one
+    acceptor_.listen();
 
     std::cout << "Server listening on port 33334" << std::endl;
     accept_connection();
@@ -33,6 +29,13 @@ void Server::start()
 
 void Server::accept_connection() 
 {
+    if (next_client_id_ >= num_max_supported_client)
+    {
+        // Reached the desired number of clients, stop accepting new connections
+        std::cout<<"Max num client connected"<< std::endl;
+        return;
+    }
+
     std::cout<<"accept_connection" << std::endl;
     auto socket = std::make_shared<boost::asio::ip::tcp::socket>(io_context_);
     acceptor_.async_accept(*socket,
@@ -57,10 +60,10 @@ void Server::handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,
         {
             boost::unique_lock<boost::mutex> lock(sockets_mutex_);
             sockets_[next_client_id_] = socket;
-            sample_buffers_[next_client_id_] = std::queue<Sample>();
         }
+        //send client the client id
+        boost::asio::write(*sockets_[next_client_id_], boost::asio::buffer(std::to_string(next_client_id_) + "\n"));
         next_client_id_++;
-        read_sample(socket);
     } 
     else 
     {
@@ -69,64 +72,6 @@ void Server::handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,
     accept_connection();
 }
 
-void Server::read_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket)
-{
-    auto sample = std::make_shared<Sample>();
-    sample->client_id = 0;
-    sample->timestamp = 0;
-    boost::asio::async_read(*socket, boost::asio::buffer(&sample->client_id, sizeof(sample->client_id)), [this, socket, sample](const boost::system::error_code& error, std::size_t bytes_transferred) 
-    {
-        if (!error) 
-        {
-            boost::asio::async_read(*socket, boost::asio::buffer(&sample->timestamp, sizeof(sample->timestamp)), [this, socket, sample](const boost::system::error_code& error, std::size_t bytes_transferred) 
-            {
-                if (!error) 
-                {
-                    auto buffer = std::make_shared<std::vector<uint8_t>>(1024);
-                    boost::asio::async_read(*socket, boost::asio::buffer(*buffer), [this, socket, sample, buffer](const boost::system::error_code& error, std::size_t bytes_transferred) 
-                    {
-                        if (!error) 
-                        {
-                            sample->data = std::vector<uint8_t>(buffer->begin(), buffer->begin() + bytes_transferred);
-                            handle_sample(socket, sample, error, bytes_transferred);
-                        } 
-                        else 
-                        {
-                            handle_sample(socket, sample, error, bytes_transferred);
-                        }
-                    });
-                } 
-                else 
-                {
-                    handle_sample(socket, sample, error, bytes_transferred);
-                }
-             });
-        }
-        else 
-        {
-            handle_sample(socket, sample, error, bytes_transferred);
-        }
-    });
-
-}
-
-void Server::handle_sample(std::shared_ptr<boost::asio::ip::tcp::socket> socket, std::shared_ptr<Sample> sample, const boost::system::error_code& error, std::size_t bytes_transferred)
-{
-    if (!error)
-    {
-        std::cout << "Sample received from client " << sample->client_id << std::endl;
-        {
-            boost::unique_lock<boost::mutex> lock(sockets_mutex_);
-            sample_buffers_[sample->client_id].push(*sample);
-        }
-        localization_queue_.push(*sample);
-        read_sample(socket);
-    } 
-    else 
-    {
-        handle_client_disconnection(sample->client_id);
-    }
-}
 
 void Server::send_control_command(uint64_t client_id, std::string command)
 {
@@ -151,10 +96,10 @@ void Server::disconnect_client(uint64_t client_id)
         boost::unique_lock<boost::mutex> lock(sockets_mutex_);
         sockets_[client_id]->close();
         sockets_.erase(client_id);
-        sample_buffers_.erase(client_id);
     }
 }
 
+//returns the vector of IDs of connected clients.
 std::vector<uint64_t>Server::get_connected_clients()
 {
     std::vector<uint64_t> clients;
@@ -190,3 +135,130 @@ void Server::run_localization()
     #endif
 
 }
+void Server::read_from_client()
+{
+    for (const auto& entry : sockets_)
+    {
+        readHeaderPacket(entry.second, entry.first);
+    }
+}
+void Server::readHeaderPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id)
+{
+     auto self = shared_from_this();//would make sure the object is alive
+    
+    // Allocate a buffer to store the incoming header
+    std::shared_ptr<HeaderPacket> header = std::make_shared<HeaderPacket>();
+    size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
+    std::vector<char> headerPacketBuffer(header_size);
+   
+   // Start the asynchronous read operation for the header
+    boost::asio::async_read(*socket, boost::asio::buffer(headerPacketBuffer.data(), header_size),
+        [self, socket, header, headerPacketBuffer, header_size,client_id](const boost::system::error_code& error, std::size_t bytesTransferred)
+        {
+            if (!error)
+            {
+                if (bytesTransferred == header_size)
+                {
+                    // Read the data packet based on the header information
+                    *header = PacketUtils::parseHeaderPacket(headerPacketBuffer);
+                    // Print the parsed header packet
+                    std::cout << "Parsed Header Packet:" << std::endl;
+                    std::cout << "Packet ID: " << header->packet_id << std::endl;
+                    std::cout << "Packet Timestamp: " << header->pkt_ts << std::endl;
+                    std::cout << "Packet Type: " << header->packet_type << std::endl;
+                    std::cout << "Packet Length: " << header->packet_length << std::endl;
+
+                    self->handleHeaderPacket(std::move(*header), socket, client_id); // Call handleHeaderPacket using shared pointer self
+                }
+                else
+                {
+                    // Handle the error case where the size of the received header is incorrect
+                    std::cout << "Error: Received header size is incorrect" << std::endl;
+                    // Perform error handling or close the socket, if necessary
+                }
+            }
+            else
+            {
+                // Handle the error case where the asynchronous read operation failed
+                std::cout << "Error: Failed to read header packet - " << error.message() << std::endl;
+                // Perform error handling or close the socket, if necessary
+            }
+        });
+}
+
+void Server::handleHeaderPacket(const HeaderPacket& packet, std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id)
+{
+    // Process the received header packet
+    std::cout << "Received header packet ID: "<< packet.packet_id << "length:" << packet.packet_length <<"Packet type:" << packet.packet_type<<std::endl;
+        
+
+    if (packet.packet_type == PACKET_TYPE_CONTROL_MESSAGE)
+    {
+        //readControlMessage(socket, client_id);
+    }
+    else if (packet.packet_type == PACKET_TYPE_DATA)
+    {
+        startReadingDataPacket(socket, client_id, packet.packet_length);
+    }
+}
+
+void Server::startReadingDataPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id, size_t packet_length)
+{
+    auto self = shared_from_this();
+    
+    // Allocate a buffer to store the incoming data packet
+    std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
+    std::vector<char> dataPacketSerial(packet_length);
+
+    // Start the asynchronous read operation for the data packet
+    boost::asio::async_read(*socket, boost::asio::buffer(dataPacketSerial.data(), packet_length),
+        [self, socket, dataPacket, dataPacketSerial, packet_length, client_id](const boost::system::error_code& error, std::size_t bytesTransferred) 
+        {
+            if (!error && bytesTransferred == packet_length) 
+            {
+                PacketUtils::parseDataPacket(dataPacketSerial, *dataPacket);
+                // Handle the received data packet
+                self->handleDataPacket(client_id, std::move(*dataPacket));
+
+                // Initiate the next read operation for this client
+                self->readHeaderPacket(socket, client_id);
+            }
+        });
+}
+
+void Server::handleDataPacket(uint64_t client_id, const DataPacket& packet)
+{
+    // Process the received data packet
+    std::cout << "Received data packet: " << std::endl;
+     // Print the parsed data packet
+    std::cout << "Parsed Data Packet:"  << std::endl;
+    std::cout << "Receiver ID: "        << packet.rx_id << std::endl;
+    std::cout << "GPS Data latitude: "  << packet.latitude << std::endl;
+    std::cout << "GPS Data longitude:"  << packet.longitude << std::endl;
+    std::cout << "GPS Data altitude: "  << packet.altitude << std::endl;
+    std::cout << "Total peak samples: " << packet.numTimeSamples <<std::endl;
+
+
+    uint8_t receiverId  = packet.rx_id;
+    double latitude     = packet.latitude;
+    double longitude    = packet.longitude;
+    double altitude     = packet.altitude;
+
+
+    // Store the buffer in memory if required ...
+    // Lock the mutex before accessing the client_buffers_ map
+    std::lock_guard<boost::mutex> lock(client_buffers_mutex_);
+    // Store the data packet in the client's buffer
+    client_buffers_[client_id].push(packet);
+
+    //Store TOA to TOA Queue
+    std::lock_guard<boost::mutex> lockq(localization_queue_mutex_);
+    localization_queue_[client_id].emplace(packet.peak_timestamps->begin(), packet.peak_timestamps->end());
+
+}
+#if 0
+void readControlMessage(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id)
+{
+
+}
+#endif
