@@ -1,5 +1,7 @@
 #include "ProcessingFuncs.h"
 
+namespace proc {
+
 void process_data(std::vector<std::complex<float>> &data_buff)
 {
     std::cout << "Processing Data..." << std::endl;
@@ -56,3 +58,5 @@ std::vector<std::complex<float>> xcorr_eigen(const std::vector<std::complex<floa
 
     return result;
 }
+
+}//end namespace

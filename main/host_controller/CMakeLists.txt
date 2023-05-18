@@ -68,7 +68,7 @@ message(STATUS "* exactly match what you require. Make sure to double-check comp
 message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
 
-target_link_libraries (main Eigen3::Eigen) 
+target_link_libraries (host_controller Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):

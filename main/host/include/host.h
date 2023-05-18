@@ -28,6 +28,7 @@ public:
     void configure_usrp();
     void synchronize_pps();
     void start_streaming();
+
     void stop_streaming();
     void send_sample(const Sample& sample);
     std::thread control_command_thread_;
@@ -36,6 +37,9 @@ public:
 private:
     void control_command_handler();
     void dsp_handler();
+    
+    void analyze_raw_data(size_t buffer_sz);
+    void process_raw_data(std::vector<std::complex<float>> data_buffer);
 
     boost::asio::io_context& io_context_;
     boost::asio::ip::tcp::socket socket_;
