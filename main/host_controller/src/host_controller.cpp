@@ -5,7 +5,7 @@
 #include <boost/bind.hpp>
 #include <memory>
 
-const uint32_t Server:: num_max_supported_client = 2;
+const uint32_t Server:: num_max_supported_client = 1;
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
 next_client_id_(0),

@@ -230,7 +230,7 @@ void Client::start_streaming()
 
     std::cout << "Sending Packet to Host Controller..." << std::endl;
     //send packet to host_controller
-    //send_dsp_data();
+    send_dsp_data();
     
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)
@@ -356,25 +356,36 @@ void handleSend(const boost::system::error_code& error, std::size_t bytes_transf
 
 void Client::send_dsp_data()
 {
+        std::cout << "Creating header packet" << std::endl;
         //create header
         HeaderPacket header;
         header.packet_id = stream_pkt_id;
         header.pkt_ts = 0;
         header.packet_type = PACKET_TYPE_DATA;
 
+        std::cout << "Creating data packet" << std::endl;
         DataPacket data;
+        std::cout << "\tAdding packet ID" << std::endl;
         data.rx_id = 0; //server needs to send the unique id
-        data.peak_timestamps = &peak_timestamp_;
+        std::cout << "\tAdding packet timestamps" << std::endl;
+        data.peak_timestamps = &this->peak_timestamp_;
+        std::cout << "\tAdding packet timestamps size" << std::endl;
         data.numTimeSamples = data.peak_timestamps->size();
 
+        std::cout << "\tAdding lat" << std::endl;
         data.latitude  = -10.2;//constants
+        std::cout << "\tAdding long" << std::endl;
         data.longitude = -11.2;
+        std::cout << "\tAdding alt" << std::endl;
         data.altitude  = 10;
-        data.waveformSamples = NULL; //not sending the waveform.
+        std::cout << "\tAdding data samples" << std::endl;
+        data.waveformSamples = &this->waveform_samples_; //not sending the waveform.
+        std::cout << "\tPacket created" << std::endl;
         header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps->size()+data.waveformSamples->size();
 
-        
+         
         size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
+        std::cout << "Creating packet buffer" << std::endl;
         // Create a packet buffer to store the header packet
         std::vector<char> headerPacketBuffer(header_size);
         PacketUtils::createHeaderPacket(header, headerPacketBuffer);
@@ -387,6 +398,7 @@ void Client::send_dsp_data()
         PacketUtils::createDataPacket(data, dataPacketBuffer);
 
         // Asynchronously send the header
+        std::cout << "Sending the packet" << std::endl;
         boost::asio::async_write(socket_, boost::asio::buffer(headerPacketBuffer),
         [&](const boost::system::error_code& error, std::size_t bytes_transferred)
         {
