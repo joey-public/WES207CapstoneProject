@@ -2,7 +2,7 @@
 
 namespace proc {
 
-void process_data(std::vector<std::complex<float>> &data_buff)
+void process_data(std::vector<RX_DTYPE> &data_buff)
 {
     std::cout << "Processing Data..." << std::endl;
     std::vector<float> data_mag = calc_mag(data_buff);
@@ -12,7 +12,7 @@ void process_data(std::vector<std::complex<float>> &data_buff)
     std::cout << "Done Processing Data..." << std::endl;
 }
 
-std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector) 
+std::vector<float> calc_mag(std::vector<RX_DTYPE>& complexVector) 
 {
     std::vector<float> magnitudes;
     magnitudes.reserve(complexVector.size());
@@ -23,7 +23,7 @@ std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector)
     return magnitudes;
 }
 
-std::vector<float> calc_phase(std::vector<std::complex<float>>& complexVector) 
+std::vector<float> calc_phase(std::vector<RX_DTYPE>& complexVector) 
 {
     std::vector<float> phases;
     phases.reserve(complexVector.size());
@@ -45,14 +45,14 @@ int detect_threshold(std::vector<float>& values, float threshold, int offset)
     return -1;
 }
 
-std::vector<std::complex<float>> xcorr_eigen(const std::vector<std::complex<float>>& signalA, const std::vector<std::complex<float>>& signalB) 
+std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const std::vector<RX_DTYPE>& signalB) 
 {
     std::size_t resultSize = signalA.size() + signalB.size() - 1;
-    std::vector<std::complex<float>> result(resultSize);
+    std::vector<RX_DTYPE> result(resultSize);
 
-    Eigen::Map<const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1>> eigenSignalA(signalA.data(), signalA.size());
-    Eigen::Map<const Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1>> eigenSignalB(signalB.data(), signalB.size());
-    Eigen::Map<Eigen::Matrix<std::complex<float>, Eigen::Dynamic, 1>> eigenResult(result.data(), resultSize);
+    Eigen::Map<const Eigen::Matrix<RX_DTYPE, Eigen::Dynamic, 1>> eigenSignalA(signalA.data(), signalA.size());
+    Eigen::Map<const Eigen::Matrix<RX_DTYPE, Eigen::Dynamic, 1>> eigenSignalB(signalB.data(), signalB.size());
+    Eigen::Map<Eigen::Matrix<RX_DTYPE, Eigen::Dynamic, 1>> eigenResult(result.data(), resultSize);
 
     eigenResult = eigenSignalA.reverse().asDiagonal() * eigenSignalB;
 

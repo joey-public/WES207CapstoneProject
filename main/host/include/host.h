@@ -8,6 +8,8 @@
 #include <boost/asio.hpp>
 #include "UsrpInitilizer.h"
 
+#include "TypeDefs.h"
+
 struct Sample 
 {
     int client_id;
@@ -39,7 +41,7 @@ private:
     void dsp_handler();
     
     void analyze_raw_data(size_t buffer_sz);
-    void process_raw_data(std::vector<std::complex<float>> data_buffer);
+    void process_raw_data(std::vector<RX_DTYPE> data_buffer);
 
     boost::asio::io_context& io_context_;
     boost::asio::ip::tcp::socket socket_;
@@ -55,7 +57,7 @@ private:
     UsrpInitilizer* usrp_handler = NULL;
     void recv_to_file(void);
     std::vector<double> peak_timestamp_;
-    std::vector<std::complex<float>> waveform_samples_;
+    std::vector<RX_DTYPE> waveform_samples_;
     uint64_t stream_seq_id;
     uint64_t stream_pkt_id;
     void send_dsp_data();

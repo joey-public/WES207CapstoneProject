@@ -13,7 +13,7 @@ uhd::stream_cmd_t _gen_stream_cmd_no_time_source(size_t buff_sz)
     return stream_cmd;
 }
 
-uhd::stream_cmd_t _gen_stream_cmd_external_time_source(uint64_t buff_sz, uhd::time_spec_t start_time)
+uhd::stream_cmd_t _gen_stream_cmd_external_time_source(size_t buff_sz, uhd::time_spec_t start_time)
 {
     uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
     stream_cmd.num_samps  = buff_sz;
@@ -29,10 +29,9 @@ uhd::stream_cmd_t _gen_stream_cmd_gpsdo(size_t buff_sz)
 }
 
 void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp, 
-                        size_t buff_sz, std::complex<float>* recv_ptr)
+                        size_t buff_sz, RX_DTYPE* recv_ptr, 
+                        std::string cpu_fmt, std::string wire_fmt)
 {
-    std::string cpu_fmt = "fc32";
-    std::string wire_fmt = "sc16";
 
     //create stream args
     uhd::stream_args_t stream_args(cpu_fmt, wire_fmt);
@@ -107,9 +106,9 @@ void stream_rx_data_continuous(uhd::usrp::multi_usrp::sptr usrp)
     //create double buffers for receiveing packets from usrp
     int num_pkts_to_recv = 25;
     size_t recv_buff_sz = num_pkts_to_recv*recv_pkt_sz; 
-    std::vector<std::complex<float>> recv_buff_0(recv_buff_sz);
-    std::vector<std::complex<float>> recv_buff_1(recv_buff_sz);
-    std::complex<float>* recv_ptr = &recv_buff_0.front(); 
+    std::vector<RX_DTYPE> recv_buff_0(recv_buff_sz);
+    std::vector<RX_DTYPE> recv_buff_1(recv_buff_sz);
+    RX_DTYPE* recv_ptr = &recv_buff_0.front(); 
     bool using_buff_0 = true;
 
     //initilize streaming metadata

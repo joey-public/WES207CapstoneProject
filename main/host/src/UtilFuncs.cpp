@@ -3,7 +3,7 @@
 
 namespace util{
 
-void save_complex_vec_to_file(const std::vector<std::complex<float>> &vec, 
+void save_complex_vec_to_file(const std::vector<RX_DTYPE> &vec, 
                                const std::string filename)
 {
      std::ofstream file(filename);
@@ -38,7 +38,7 @@ void save_float_vec_to_file(const std::vector<float> &vec,
 }
 
 
-std::vector<std::complex<float>> get_subvec(const std::vector<std::complex<float>>&in_vec, 
+std::vector<RX_DTYPE> get_subvec(const std::vector<RX_DTYPE>&in_vec, 
                                            int start_idx, int k)
 {
     if(start_idx + k > in_vec.size())
@@ -46,7 +46,7 @@ std::vector<std::complex<float>> get_subvec(const std::vector<std::complex<float
         std::cout << "invalid range of start_idx+k is too large...\n";
         return in_vec;
     }
-    std::vector<std::complex<float>> out_vec(k);
+    std::vector<RX_DTYPE> out_vec(k);
     int j = 0;
     for(int i = start_idx; i < start_idx + k; i++)
     {

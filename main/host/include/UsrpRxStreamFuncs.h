@@ -10,6 +10,8 @@
 #include <complex>
 #include <vector>
 
+#include "TypeDefs.h"
+
 namespace rx_strm{
 
 uhd::stream_cmd_t _gen_stream_cmd_no_time_source(size_t buff_sz);
@@ -17,7 +19,8 @@ uhd::stream_cmd_t _gen_stream_cmd_external_time_source(size_t buff_sz, uhd::time
 uhd::stream_cmd_t _gen_stream_cmd_gpsdo(size_t buff_sz);
 
 void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp, 
-                        size_t buff_sz, std::complex<float>* recv_ptr);
+                        size_t buff_sz, RX_DTYPE* recv_ptr, 
+                        std::string cpu_fmt, std::string wire_fmt);
 
 void stream_rx_data_continuous(uhd::usrp::multi_usrp::sptr usrp);
 

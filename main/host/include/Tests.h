@@ -5,6 +5,7 @@
 #include <complex>
 #include <vector>
 #include "../include/ProcessingFuncs.h"
+#include "TypeDefs.h"
 
 void run_all_tests();
 bool test_calc_mag();

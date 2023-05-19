@@ -7,6 +7,7 @@
 #include "UsrpRxStreamFuncs.h"
 #include "UtilFuncs.h"
 #include "ProcessingFuncs.h"
+#include "TypeDefs.h"
 
 //#include <gnuplot-iostream.h>
 
@@ -162,16 +163,17 @@ void Client::start_streaming()
 
     //Stream the raw data
     //fill the buffer with data from the usrp
-    std::vector<std::complex<float>> data_buffer(buffer_sz);
+    std::vector<RX_DTYPE> data_buffer(buffer_sz);
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Start Streaming Data..." << std::endl;
-    rx_strm::stream_rx_data_nsamps(usrp, buffer_sz, &data_buffer.front());
+    rx_strm::stream_rx_data_nsamps(usrp, buffer_sz, &data_buffer.front(), 
+                                       "sc16", "sc16");
     std::cout << "Stop Streaming Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 
     //Analyze the raw data
     std::cout << "Analyzing Raw Data..." << std::endl;
-    float buff_mem = sizeof(std::complex<float>) * buffer_sz;//bytes 
+    float buff_mem = sizeof(RX_DTYPE) * buffer_sz;//bytes 
     //print stats about size of data buffer
     std::cout << "\tCollected " << stream_time << "s of raw data at fs = "
               << usrp->get_rx_rate() << std::endl;
@@ -216,7 +218,7 @@ void Client::start_streaming()
         int k = int(save_time * usrp->get_rx_rate());
         //save the pulse into a vector
         this->waveform_samples_ = util::get_subvec(data_buffer, start_idx, k);
-        buff_mem = sizeof(std::complex<float>) * this->waveform_samples_.size();//bytes 
+        buff_mem = sizeof(RX_DTYPE) * this->waveform_samples_.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
         //save data to file
 #ifdef SAVE_DATA_PULSE
@@ -243,7 +245,7 @@ void Client::analyze_raw_data(size_t buffer_sz)
 {
 }
 
-void Client::process_raw_data(std::vector<std::complex<float>> data_buffer)
+void Client::process_raw_data(std::vector<RX_DTYPE> data_buffer)
 {
 }
 

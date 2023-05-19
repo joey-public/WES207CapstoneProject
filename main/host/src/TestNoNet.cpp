@@ -23,6 +23,9 @@ void test()
     double center_freq =173935300;
     double gain = 0;
     double bw = 10e6;
+    //stream settings 
+    std::string cpu_fmt = "sc16";
+    std::string wire_fmt = "sc16";
 
     uhd::usrp::multi_usrp::sptr usrp = init::gen_usrp(ip, subdev, ant, clock_ref, time_ref, sample_rate, center_freq, gain, bw);
     
@@ -33,16 +36,17 @@ void test()
 
     //Stream the raw data
     //fill the buffer with data from the usrp
-    std::vector<std::complex<float>> data_buffer(buffer_sz);
+    std::vector<RX_DTYPE> data_buffer(buffer_sz);
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Start Streaming Data..." << std::endl;
-    rx_strm::stream_rx_data_nsamps(usrp, buffer_sz, &data_buffer.front());
+    rx_strm::stream_rx_data_nsamps(usrp, buffer_sz, &data_buffer.front(), 
+                                   cpu_fmt, wire_fmt);
     std::cout << "Stop Streaming Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     
     //Analyze the raw data
     std::cout << "Analyzing Raw Data..." << std::endl;
-    float buff_mem = sizeof(std::complex<float>) * buffer_sz;//bytes 
+    float buff_mem = sizeof(RX_DTYPE) * buffer_sz;//bytes 
     //print stats about size of data buffer
     std::cout << "\tCollected " << stream_time << "s of raw data at fs = "
               << usrp->get_rx_rate() << std::endl;
@@ -82,8 +86,8 @@ void test()
     {
         std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
         int k = int(save_time * usrp->get_rx_rate());
-        std::vector<std::complex<float>> pulse_data = util::get_subvec(data_buffer, start_idx, k);
-        buff_mem = sizeof(std::complex<float>) * pulse_data.size();//bytes 
+        std::vector<RX_DTYPE> pulse_data = util::get_subvec(data_buffer, start_idx, k);
+        buff_mem = sizeof(RX_DTYPE) * pulse_data.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
         //save data to file
 #ifdef SAVE_DATA
