@@ -1,6 +1,6 @@
 #include "host.h"
 
-#include "no_network_test.h"
+#include "TestNoNet.h"
 
 #define RUN_TEST
 

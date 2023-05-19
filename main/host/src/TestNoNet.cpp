@@ -1,4 +1,4 @@
-#include "no_network_test.h"
+#include "TestNoNet.h"
 //#define ENABLE_TESTS
 #define ENABLE_USRP
 //#define SAVE_DATA
@@ -17,15 +17,12 @@ void test()
     std::string ip = "192.168.11.2";
     std::string subdev = "A:0";
     std::string ant = "TX/RX";
-    std::string clock_ref = "internal";
-    std::string time_ref = "none";
+    std::string clock_ref = "external";
+    std::string time_ref = "external";
     double sample_rate = 10e6;
-    double center_freq = 174e6;
+    double center_freq =173935300;
     double gain = 0;
-    double bw = 20e6;
-    //stream settings
-    std::string cpu_fmt = "sc16";
-    std::string wire_fmt = "sc16";
+    double bw = 10e6;
 
     uhd::usrp::multi_usrp::sptr usrp = init::gen_usrp(ip, subdev, ant, clock_ref, time_ref, sample_rate, center_freq, gain, bw);
     
