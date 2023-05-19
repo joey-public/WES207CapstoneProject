@@ -50,7 +50,9 @@ int main(int argc, char* argv[])
         std::string command;
         while (std::getline(std::cin, command)) 
         {
-            if (command == "config" || command == "sync" || command == "stream" || command == "stop"|| command == "send")
+            if (command == "config" || command == "sync" 
+            || command == "stream" || command == "stop"
+            || command == "send")
             {
                 server.broadcast_control_command(command);
             }

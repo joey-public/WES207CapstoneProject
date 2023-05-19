@@ -4,6 +4,7 @@
 #include <string>
 #include <boost/bind.hpp>
 #include <memory>
+#include "localization.h"
 
 const uint32_t Server:: num_max_supported_client = 2;
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
@@ -120,16 +121,27 @@ void Server::handle_client_disconnection(uint64_t client_id)
 
 void Server::run_localization()
 {
-    std::unique_lock <std::mutex> lock(loc_th_mutex_);
-    cv_loc_wait.wait(lock,[this] {return start_localization_.load();});
+    while(true)
+    {
+        std::unique_lock <std::mutex> lock(loc_th_mutex_);
+        cv_loc_wait.wait(lock,[this] {return start_localization_.load();});
 
-    // Start processing the received data
+        // Start processing the received data
+        std::cout << "Localization Thread starting processing:" <<std::endl;
 
+        //check max num element of ToA.
+        //loop and feed value to the localization function
+
+        //finished processing,
+        start_localization_.store(false);
+    }
 }
 
 void Server::read_from_client()
 {
     numClientsDataReceived_.store(0);
+    start_localization_.store(false);
+
     for (const auto& entry : sockets_)
     {
         readHeaderPacket(entry.second, entry.first);
