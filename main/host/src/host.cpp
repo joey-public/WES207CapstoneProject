@@ -455,12 +455,16 @@ void Client::recv_to_file(void)
     bool overflow_message = true;
 
     // setup streaming
-    uhd::stream_cmd_t stream_cmd((num_requested_samples == 0)
-                                     ? uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS
-                                     : uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
-    stream_cmd.num_samps  = size_t(num_requested_samples);
-    stream_cmd.stream_now = true;
-    stream_cmd.time_spec  = uhd::time_spec_t();
+//    uhd::stream_cmd_t stream_cmd((num_requested_samples == 0)
+//                                     ? uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS
+//                                     : uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
+//    stream_cmd.num_samps  = size_t(num_requested_samples);
+//    stream_cmd.stream_now = true;
+//    stream_cmd.time_spec  = uhd::time_spec_t();
+    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
+    stream_cmd.num_samps = size_t(num_requested_samples);
+    stream_cmd.stream_now = false;
+    stream_cmd.time_spec = this->usrp_handler->get_usrp()->get_time_now().get_real_secs() + 0.2;
     rx_stream->issue_stream_cmd(stream_cmd);
 
     typedef std::map<size_t, size_t> SizeMap;
