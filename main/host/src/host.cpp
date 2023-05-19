@@ -227,10 +227,6 @@ void Client::start_streaming()
     }
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
-
-    std::cout << "Sending Packet to Host Controller..." << std::endl;
-    //send packet to host_controller
-    send_dsp_data();
     
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)
