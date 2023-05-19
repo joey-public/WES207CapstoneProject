@@ -129,9 +129,62 @@ void Server::run_localization()
         // Start processing the received data
         std::cout << "Localization Thread starting processing:" <<std::endl;
 
+	 //std::vector<double> ToAs =  localization_queue_[0].front();
+	 //localization_queue_[0].pop();
+        
+        //double ToAs[4];
+        
+        //TEST DATA
+        /*
+        std::vector<double> testVec1 = {0.1, 0.2, 0.3, 0.4, 0.5};
+        std::vector<double> testVec2 = {0.11, 0.22, 0.33, 0.44, 0.55};
+        
+        localization_queue_[0].push(testVec1);
+        localization_queue_[1].push(testVec2);
+        */
+        //END TEST DATA
+        
+        std::vector<double> r0_ToAs = localization_queue_[0].front();
+        std::vector<double> r1_ToAs = localization_queue_[1].front();
+        
+        //until we get 4 receivers working, repeat times to test
+        std::vector<double> r2_ToAs = localization_queue_[0].front();
+        std::vector<double> r3_ToAs = localization_queue_[1].front();
+        
+        localization_queue_[0].pop();
+        localization_queue_[1].pop();
+        
         //check max num element of ToA.
+        /*
+        for(int i = 0; i < num_max_supported_client; i++) 
+        {
+        	ToAs[i] = localization_queue_[i].front();
+        	localization_queue_[i].pop();
+        	if(i > 3)
+        	{
+        		std::cout << "No localization function to support more than 4 clients. 				Using first 4 only" << std::endl;
+        		break;
+        	}
+        }
+        */
         //loop and feed value to the localization function
+        for(int i = 0; i < r0_ToAs.size(); i++)
+        {
+        	double tmax = std::max({r0_ToAs.at(i), r1_ToAs.at(i), r2_ToAs.at(i), r3_ToAs.at(i)});
+        	double tmin = std::max({r0_ToAs.at(i), r1_ToAs.at(i), r2_ToAs.at(i), r3_ToAs.at(i)});
+        	
+        	//if time difference is too large, something went wrong and data will be meaningless
+        	//so only perform localization if time difference is small
+        	if(tmax - tmin < 0.5)
+        	{
+        	std::cout << "Starting localization. Inputs: " << std::endl << r0_ToAs.at(i) << std::endl << r1_ToAs.at(i) << std::endl << r2_ToAs.at(i) << std::endl << r3_ToAs.at(i) << std::endl;
+        	Eigen::Vector3d loc_est = Localization_4Receivers_2D(r0_ToAs.at(i), r1_ToAs.at(i), r2_ToAs.at(i), r3_ToAs.at(i));
+        	std::cout << "Estimated Location: " << loc_est << std::endl;
+        	}
 
+        }
+        
+        
         //finished processing,
         start_localization_.store(false);
     }
