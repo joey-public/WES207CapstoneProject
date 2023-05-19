@@ -32,7 +32,8 @@ void stream_rx_data(uhd::usrp::multi_usrp::sptr usrp,
     float stream_timeout = 3.0;
     //configure stream cmds
     uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
-//    stream_cmd.stream_now = true;
+    stream_cmd.stream_now = true;
+    stream_cmd.time_spec = uhd::time_spec_t(0, 0.5);
     rx_stream->issue_stream_cmd(stream_cmd);
 
     //sync to gps here...

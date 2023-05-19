@@ -1,7 +1,16 @@
 #include "host.h"
 
+#include "no_network_test.h"
+
+#define RUN_TEST
+
 int main(int argc, char* argv[])
 {
+#ifdef RUN_TEST
+    test();
+#endif
+
+#ifndef RUN_TEST
     if (argc != 4) 
     {
         std::cerr << "Usage: ./host <server_address> <server_port> <usrp_ip>" << std::endl;
@@ -15,6 +24,7 @@ int main(int argc, char* argv[])
     //client.stop();
     client.control_command_thread_.join();
     client.dsp_thread_.join();
+#endif
 
 return 0;
 }
