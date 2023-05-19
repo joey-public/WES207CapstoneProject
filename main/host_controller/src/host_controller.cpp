@@ -9,7 +9,8 @@ const uint32_t Server:: num_max_supported_client = 2;
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
 next_client_id_(0),
-server_addr_(addr)
+server_addr_(addr),
+numClientsDataReceived_(0)
 {
     server_port_ = std::stoi(port_num);
 }
@@ -119,24 +120,16 @@ void Server::handle_client_disconnection(uint64_t client_id)
 
 void Server::run_localization()
 {
-    #if 0
-    localization_thread_ = std::thread([this]()
-    {
-            while (true) 
-            {
-                Sample sample;
-                //std::unique_lock<std::mutex> lock(localization_mutex_);
-                sample = localization_queue_.front();
-                localization_queue_.pop();
-                std::cout << "Sample processed by localization thread: client " << sample.client_id << ", timestamp " << sample.timestamp << std::endl;
-                // perform localization calculations here
-             }
-    });
-    #endif
+    std::unique_lock <std::mutex> lock(loc_th_mutex_);
+    cv_loc_wait.wait(lock,[this] {return start_localization_.load();});
+
+    // Start processing the received data
 
 }
+
 void Server::read_from_client()
 {
+    numClientsDataReceived_.store(0);
     for (const auto& entry : sockets_)
     {
         readHeaderPacket(entry.second, entry.first);
@@ -205,7 +198,8 @@ void Server::handleHeaderPacket(const HeaderPacket& packet, std::shared_ptr<boos
 void Server::startReadingDataPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id, size_t packet_length)
 {
     auto self = shared_from_this();
-    
+
+
     // Allocate a buffer to store the incoming data packet
     std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
     std::vector<char> dataPacketSerial(packet_length);
@@ -224,6 +218,7 @@ void Server::startReadingDataPacket(std::shared_ptr<boost::asio::ip::tcp::socket
                 self->readHeaderPacket(socket, client_id);
             }
         });
+
 }
 
 void Server::handleDataPacket(uint64_t client_id, const DataPacket& packet)
@@ -254,6 +249,19 @@ void Server::handleDataPacket(uint64_t client_id, const DataPacket& packet)
     //Store TOA to TOA Queue
     std::lock_guard<boost::mutex> lockq(localization_queue_mutex_);
     localization_queue_[client_id].emplace(packet.peak_timestamps->begin(), packet.peak_timestamps->end());
+
+    //increase the count
+    int numClientsDataReceived = numClientsDataReceived_.fetch_add(1);
+    std::cout << "Total clients that have queue the data = " << numClientsDataReceived;
+
+     // Check if all clients have sent their data
+    if (numClientsDataReceived == num_max_supported_client) 
+    {
+        // Notify the localization thread to start processing
+        std::unique_lock <std::mutex> lock(loc_th_mutex_);
+        start_localization_.store(true);
+        cv_loc_wait.notify_one();
+    }
 
 }
 #if 0

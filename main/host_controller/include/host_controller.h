@@ -9,6 +9,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread/mutex.hpp>
 #include "PacketUtils.h"
+#include <atomic>
 
 class Server:public std::enable_shared_from_this<Server>
 {
@@ -54,6 +55,11 @@ private:
     boost::mutex sockets_mutex_;
     std::string server_addr_;
     uint32_t server_port_;
+    std::mutex loc_th_mutex_;
+    std::atomic<bool> start_localization_;
+    std::condition_variable cv_loc_wait;
+    std::atomic<int> numClientsDataReceived_;
+
 };
 
 #endif //HOST_CONTROLLER_H
