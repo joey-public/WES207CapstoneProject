@@ -18,7 +18,7 @@ void test()
     std::string subdev = "A:0";
     std::string ant = "TX/RX";
     std::string clock_ref = "external";
-    std::string time_ref = "external";
+    std::string time_ref = "_external_";
     double sample_rate = 10e6;
     double center_freq =173935300;
     double gain = 0;

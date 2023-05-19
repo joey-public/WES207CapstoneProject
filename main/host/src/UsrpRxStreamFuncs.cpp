@@ -5,12 +5,32 @@
 
 namespace rx_strm{
 
+uhd::stream_cmd_t _gen_stream_cmd_no_time_source(size_t buff_sz)
+{
+    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
+    stream_cmd.num_samps = buff_sz;//set number of samples to recv
+    stream_cmd.stream_now = true;//don't stream right now
+    return stream_cmd;
+}
+
+uhd::stream_cmd_t _gen_stream_cmd_external_time_source(uint64_t buff_sz, uhd::time_spec_t start_time)
+{
+    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
+    stream_cmd.num_samps  = buff_sz;
+    stream_cmd.stream_now = false;
+    stream_cmd.time_spec  = uhd::time_spec_t(start_time);
+    return stream_cmd;
+}
+
+uhd::stream_cmd_t _gen_stream_cmd_gpsdo(size_t buff_sz)
+{
+    std::cout << "only works with B200..." << std::endl;
+    return _gen_stream_cmd_no_time_source(buff_sz);
+}
+
 void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp, 
                         size_t buff_sz, std::complex<float>* recv_ptr)
 {
-    
-//    std::cout << "Start Streaming Data..." << std::endl;
-
     std::string cpu_fmt = "fc32";
     std::string wire_fmt = "sc16";
 
@@ -20,6 +40,10 @@ void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp,
     size_t recv_pkt_sz = rx_stream->get_max_num_samps();
     float recv_pkt_dt = recv_pkt_sz / usrp->get_rx_rate();
 
+    //print some stats
+    std::cout << "\tCollecting " << buff_sz << " samples" << std::endl;
+    std::cout << "\tcpu_fmt = " << cpu_fmt << std::endl;
+    std::cout << "\twire_fmt = " << wire_fmt << std::endl;
     std::cout << "\tRX Buff Size: " << std::to_string(recv_pkt_sz) << std::endl;
     std::cout << "\tpkt dt = " << std::to_string(recv_pkt_sz)
                                 << " samples / " 
@@ -29,38 +53,28 @@ void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp,
                                 << " us" << std::endl;
 
     //initilize streaming metadata
-    std::cout << "\tinitalizing stream metadata" << std::endl;
     uhd::rx_metadata_t md;
-    float stream_timeout = 10.0;
-    //configure stream cmds
-    //based on rx_samples_to_udp example
-    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_MORE);
-    stream_cmd.num_samps = buff_sz;//set number of samples to recv
-    stream_cmd.stream_now = false;//don't stream right now
-    stream_cmd.time_spec = uhd::time_spec_t(1.5);//start streaming at t=1.5s
-    rx_stream->issue_stream_cmd(stream_cmd);
-    
+
+    //initilaze other useful variables
+    float stream_timeout = 3.0;
     size_t num_recv_samps = 0;
     size_t rx_sample_count = 0;
     size_t total_samples = 0;
-    int cnt = 0;
-    while(total_samples <= buff_sz)
+
+    //configure stream cmds based on uhd time_source
+    uhd::time_spec_t start_time = usrp->get_time_now().get_real_secs() + 0.2; 
+    uhd::stream_cmd_t stream_cmd = _gen_stream_cmd_external_time_source(buff_sz, start_time);
+    rx_stream->issue_stream_cmd(stream_cmd);
+    
+    //stream the data into the passed buffer
+    while(total_samples < buff_sz)
     { 
-        std::cout << cnt << std::endl;
         num_recv_samps = rx_stream->recv(recv_ptr, recv_pkt_sz, md, stream_timeout, true);
-        std::cout << num_recv_samps << std::endl;
         _handle_recv_errors(md, rx_sample_count);
         rx_sample_count += num_recv_samps;        
         recv_ptr += num_recv_samps; 
         total_samples += num_recv_samps;
-        cnt += 1;
     }
-
-    //stop the stream
-//    stream_cmd.stream_mode = uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS;
-//    rx_stream->issue_stream_cmd(stream_cmd);
-
-//    std::cout << "Stop Streaming Data..." << std::endl;
 }
 
 //currently NOP
