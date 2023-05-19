@@ -2,10 +2,9 @@
 ```mermaid
 graph LR
 A(RX Data Stream)-->B(Take Magnitide)
-B --> C(FIR BPF Filter)
-C --> D(Threshold Detection)
+B--> D(Threshold Detection)
 D --> E{Above Th ?}
-E --> |Yes| F(Dump 30 ms Data to memory)
+E --> |Yes| F(Dump 20 ms Data to memory)
 E --> |No| A
 F --> G(send stored data to CPU)
 ```
