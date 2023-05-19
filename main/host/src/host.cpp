@@ -221,6 +221,10 @@ void Client::control_command_handler()
         else if (command == "stop") 
         {
             stop_streaming();
+        }
+        else if (command == "send")
+        {
+            send_dsp_data();
         } 
         else 
         {
