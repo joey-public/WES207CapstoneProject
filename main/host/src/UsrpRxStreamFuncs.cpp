@@ -29,30 +29,36 @@ void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp,
                                 << " us" << std::endl;
 
     //initilize streaming metadata
+    std::cout << "\tinitalizing stream metadata" << std::endl;
     uhd::rx_metadata_t md;
-    float stream_timeout = 3.0;
+    float stream_timeout = 10.0;
     //configure stream cmds
-    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
-//    stream_cmd.stream_now = true;
+    //based on rx_samples_to_udp example
+    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_MORE);
+    stream_cmd.num_samps = buff_sz;//set number of samples to recv
+    stream_cmd.stream_now = false;//don't stream right now
+    stream_cmd.time_spec = uhd::time_spec_t(1.5);//start streaming at t=1.5s
     rx_stream->issue_stream_cmd(stream_cmd);
-
-    //sync to gps here...
     
     size_t num_recv_samps = 0;
     size_t rx_sample_count = 0;
     size_t total_samples = 0;
+    int cnt = 0;
     while(total_samples <= buff_sz)
     { 
-        num_recv_samps = rx_stream->recv(recv_ptr, recv_pkt_sz, md, stream_timeout);
+        std::cout << cnt << std::endl;
+        num_recv_samps = rx_stream->recv(recv_ptr, recv_pkt_sz, md, stream_timeout, true);
+        std::cout << num_recv_samps << std::endl;
         _handle_recv_errors(md, rx_sample_count);
         rx_sample_count += num_recv_samps;        
         recv_ptr += num_recv_samps; 
         total_samples += num_recv_samps;
+        cnt += 1;
     }
 
     //stop the stream
-    stream_cmd.stream_mode = uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS;
-    rx_stream->issue_stream_cmd(stream_cmd);
+//    stream_cmd.stream_mode = uhd::stream_cmd_t::STREAM_MODE_STOP_CONTINUOUS;
+//    rx_stream->issue_stream_cmd(stream_cmd);
 
 //    std::cout << "Stop Streaming Data..." << std::endl;
 }
