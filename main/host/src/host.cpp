@@ -362,6 +362,7 @@ void Client::send_dsp_data()
         header.packet_id = stream_pkt_id;
         header.pkt_ts = 0;
         header.packet_type = PACKET_TYPE_DATA;
+        std::cout << "\tHeader packet created" << std::endl;
 
         std::cout << "Creating data packet" << std::endl;
         DataPacket data;
@@ -380,7 +381,7 @@ void Client::send_dsp_data()
         data.altitude  = 10;
         std::cout << "\tAdding data samples" << std::endl;
         data.waveformSamples = &this->waveform_samples_; //not sending the waveform.
-        std::cout << "\tPacket created" << std::endl;
+        std::cout << "\tData packet created" << std::endl;
         header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps->size()+data.waveformSamples->size();
 
          
