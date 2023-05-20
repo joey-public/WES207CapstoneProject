@@ -59,4 +59,20 @@ std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const st
     return result;
 }
 
+// ----------------------------------------------
+// Run a FIR filter on the given input data
+// ----------------------------------------------
+void fir(int16_t *coeffs, RX_DTYPE *input, RX_DTYPE *output, int length, int filterLength)
+// ----------------------------------------------
+{
+    std::cout << "Naive FIR\n";
+    for(int i=0; i<length-filterLength; i++){//for size of signal
+        RX_DTYPE result = 0.0;
+        for(int j=0; j<filterLength; j++){//for each filter coef 
+            result += input[i+j] * coeffs[j]; 
+        }
+        output[i] = result;
+    }
+}
+
 }//end namespace
