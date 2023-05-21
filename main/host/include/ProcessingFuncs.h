@@ -22,5 +22,7 @@ int detect_threshold(std::vector<float>& values, float threshold, int offset);
 
 std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const std::vector<RX_DTYPE>& signalB);
 
+void fir(int16_t *coeffs, RX_DTYPE *input, RX_DTYPE *output, int length, int filterLength);
+
 }//end namespace
 #endif
