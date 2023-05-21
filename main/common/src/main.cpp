@@ -17,16 +17,16 @@ int main()
     DataPacket data;
     data.rx_id = 1;
     std::vector<double> ts = {1,2,3,4,5};
-    data.peak_timestamps = &ts;
-    data.numTimeSamples = data.peak_timestamps->size();
+    data.peak_timestamps = std::move(ts);
+    data.numTimeSamples = data.peak_timestamps.size();
 
     data.latitude  = -10.2;
     data.longitude = -11.2;
-    data.altitude  = 10;
+    data.altitude  =  10;
     std::vector<std::complex<short>> wv = {1,2,3,4,5};
-    data.waveformSamples = &wv;
-    header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps->size()+data.waveformSamples->size();
-    //std::cout << "Packet Length: " << header.packet_length << std::endl;
+    data.waveformSamples = std::move(wv);    
+    
+    header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
 
     size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
 
@@ -37,8 +37,9 @@ int main()
 
     // Create a packet buffer to store the data packet
     std::size_t packetSize = PacketUtils::DATA_PACKET_FIXED_SIZE 
-        + data.peak_timestamps->size() * sizeof(double) 
-        + data.waveformSamples->size() * sizeof(std::complex<short>);
+        + data.peak_timestamps.size() * sizeof(double) 
+        + data.waveformSamples.size() * sizeof(std::complex<short>);
+    std:: cout << "Packet size: " << packetSize << std::endl;
     std::vector<char> dataPacketBuffer(packetSize);
     PacketUtils::createDataPacket(data, dataPacketBuffer);
 
@@ -46,16 +47,19 @@ int main()
     HeaderPacket parsedHeader;
     parsedHeader = PacketUtils::parseHeaderPacket(headerPacketBuffer);
 
-    // Parse the data packet
-    DataPacket parsedData;
-    PacketUtils::parseDataPacket(dataPacketBuffer, parsedData);
-
-    // Print the parsed header packet
+        // Print the parsed header packet
     std::cout << "Parsed Header Packet:" << std::endl;
     std::cout << "Packet ID: " << parsedHeader.packet_id << std::endl;
     std::cout << "Packet Timestamp: " << parsedHeader.pkt_ts << std::endl;
     std::cout << "Packet Type: " << parsedHeader.packet_type << std::endl;
     std::cout << "Packet Length: " << parsedHeader.packet_length << std::endl;
+
+
+    // Parse the data packet
+    DataPacket parsedData;
+    PacketUtils::parseDataPacket(dataPacketBuffer, parsedData);
+
+
 
     // Print the parsed data packet
     std::cout << "Parsed Data Packet:" << std::endl;
@@ -64,23 +68,23 @@ int main()
     std::cout << "GPS Data longitude:" << parsedData.longitude << std::endl;
     std::cout << "GPS Data altitude: " << parsedData.altitude << std::endl;
     std::cout << "Total peak samples: " << parsedData.numTimeSamples <<std::endl;
-    std::cout << "Packet Timestamp 0: " << parsedData.peak_timestamps->at(0) << std::endl;
-    std::cout << "Packet Timestamp 1: " << parsedData.peak_timestamps->at(1) << std::endl;
-    std::cout << "Packet Timestamp 2: " << parsedData.peak_timestamps->at(2) << std::endl;
+    std::cout << "Packet Timestamp 0: " << parsedData.peak_timestamps.at(0) << std::endl;
+    std::cout << "Packet Timestamp 1: " << parsedData.peak_timestamps.at(1) << std::endl;
+    std::cout << "Packet Timestamp 2: " << parsedData.peak_timestamps.at(2) << std::endl;
 
     std::cout << "Waveform Samples:";
-    for (std::complex<short> sample : *parsedData.waveformSamples) 
+    for (std::complex<short> sample : parsedData.waveformSamples) 
     {
         std::cout << " " << sample;
     }
     std::cout << std::endl;
     std::cout << "Timestamps:";
-    for (uint64_t timestamp : *parsedData.peak_timestamps) 
+    for (uint64_t timestamp :parsedData.peak_timestamps) 
     {
         std::cout << " " << timestamp;
     }
     std::cout << std::endl;
-
+#if 0
     // Create control packet
     ControlMessage cm;
     cm.rx_id = 1;
@@ -105,6 +109,6 @@ int main()
     {
         std::cout << msg<<std::endl;
     }
-
+#endif
     return 0;
 }

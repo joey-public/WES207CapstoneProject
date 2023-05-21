@@ -56,8 +56,8 @@ typedef struct DataPacket_s
     double   latitude;
     double   altitude;
     uint64_t numTimeSamples;
-    std::vector<double>* peak_timestamps;
-    std::vector<std::complex<short>>* waveformSamples;
+    std::vector<double> peak_timestamps;
+    std::vector<std::complex<short>> waveformSamples;
 } DataPacket;
 
 #endif

@@ -5,13 +5,15 @@
 #include <boost/bind.hpp>
 #include <memory>
 #include "localization.h"
+#include "debug.h"
 
-const uint32_t Server:: num_max_supported_client = 2;
+const uint32_t Server:: num_max_supported_client = 2; //change it back to 2.
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
 next_client_id_(0),
 server_addr_(addr),
-numClientsDataReceived_(0)
+numClientsDataReceived_(0),
+start_localization_(false)
 {
     server_port_ = std::stoi(port_num);
 }
@@ -83,11 +85,19 @@ void Server::send_control_command(uint64_t client_id, std::string command)
 
 void Server::broadcast_control_command(std::string command)
 {
-    std::cout << "Broadcasting control command "" << command << "" to all clients" << std::endl;
+    std::cout << "Broadcasting control command:" << command << " to all clients" << std::endl;
     boost::unique_lock<boost::mutex> lock(sockets_mutex_);
     for (const auto& pair : sockets_) 
     {
-        boost::asio::write(*pair.second, boost::asio::buffer(command + "\n"));
+        try 
+        {
+            boost::asio::write(*pair.second, boost::asio::buffer(command + "\n"));
+        } 
+        catch (const boost::system::system_error& e) 
+        {
+            std::cerr << "Error while sending command to client: " << e.what() << std::endl;
+            // Handle the error, such as closing the socket or taking appropriate action
+        }
     }
 }
 
@@ -127,7 +137,7 @@ void Server::run_localization()
         cv_loc_wait.wait(lock,[this] {return start_localization_.load();});
 
         // Start processing the received data
-        std::cout << "Localization Thread starting processing:" <<std::endl;
+        std::cout << "Localization Thread started processing:" <<std::endl;
 
 	 //std::vector<double> ToAs =  localization_queue_[0].front();
 	 //localization_queue_[0].pop();
@@ -200,56 +210,70 @@ void Server::read_from_client()
         readHeaderPacket(entry.second, entry.first);
     }
 }
+
 void Server::readHeaderPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id)
 {
-     auto self = shared_from_this();//would make sure the object is alive
-    
+     TRACE_ENTER;
+
+     auto self(shared_from_this());//would make sure the object is alive
+
     // Allocate a buffer to store the incoming header
     std::shared_ptr<HeaderPacket> header = std::make_shared<HeaderPacket>();
     size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
     std::vector<char> headerPacketBuffer(header_size);
+    std::cout << "Read Header Packet: "<<header_size <<std::endl;
    
-   // Start the asynchronous read operation for the header
-    boost::asio::async_read(*socket, boost::asio::buffer(headerPacketBuffer.data(), header_size),
+   try
+   {
+        std::cout <<"Socket address:" << socket;
+        // Start the asynchronous read operation for the header
+        boost::asio::async_read(*socket, boost::asio::buffer(headerPacketBuffer.data(), header_size),
         [self, socket, header, headerPacketBuffer, header_size,client_id](const boost::system::error_code& error, std::size_t bytesTransferred)
-        {
-            if (!error)
             {
-                if (bytesTransferred == header_size)
+                if (!error)
                 {
-                    // Read the data packet based on the header information
-                    *header = PacketUtils::parseHeaderPacket(headerPacketBuffer);
-                    // Print the parsed header packet
-                    std::cout << "Parsed Header Packet:" << std::endl;
-                    std::cout << "Packet ID: " << header->packet_id << std::endl;
-                    std::cout << "Packet Timestamp: " << header->pkt_ts << std::endl;
-                    std::cout << "Packet Type: " << header->packet_type << std::endl;
-                    std::cout << "Packet Length: " << header->packet_length << std::endl;
-
-                    self->handleHeaderPacket(std::move(*header), socket, client_id); // Call handleHeaderPacket using shared pointer self
+                    if (bytesTransferred == header_size)
+                    {
+                        // Read the data packet based on the header information
+                        *header = PacketUtils::parseHeaderPacket(headerPacketBuffer);
+#ifdef DEBUG
+                        // Print the parsed header packet
+                        std::cout << "Parsed Header Packet:" << std::endl;
+                        std::cout << "Packet ID: " << header->packet_id << std::endl;
+                        std::cout << "Packet Timestamp: " << header->pkt_ts << std::endl;
+                        std::cout << "Packet Type: " << header->packet_type << std::endl;
+                        std::cout << "Packet Length: " << header->packet_length << std::endl;
+#endif
+                        self->handleHeaderPacket(std::move(*header), socket, client_id); // Call handleHeaderPacket using shared pointer self
+                    }
+                    else
+                    {
+                        // Handle the error case where the size of the received header is incorrect
+                        std::cout << "Error: Received header size is incorrect" << std::endl;
+                        // Perform error handling or close the socket, if necessary
+                    }
                 }
                 else
                 {
-                    // Handle the error case where the size of the received header is incorrect
-                    std::cout << "Error: Received header size is incorrect" << std::endl;
+                    // Handle the error case where the asynchronous read operation failed
+                    std::cout << "Error: Failed to read header packet - " << error.message() << std::endl;
                     // Perform error handling or close the socket, if necessary
                 }
-            }
-            else
-            {
-                // Handle the error case where the asynchronous read operation failed
-                std::cout << "Error: Failed to read header packet - " << error.message() << std::endl;
-                // Perform error handling or close the socket, if necessary
-            }
-        });
+            });
+   }
+   catch(const boost::system::system_error& e)
+   {
+       std::cerr << "Send error: " << e.what() << std::endl;;
+   }
+   
 }
 
 void Server::handleHeaderPacket(const HeaderPacket& packet, std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id)
 {
+    TRACE_ENTER;
     // Process the received header packet
     std::cout << "Received header packet ID: "<< packet.packet_id << "length:" << packet.packet_length <<"Packet type:" << packet.packet_type<<std::endl;
         
-
     if (packet.packet_type == PACKET_TYPE_CONTROL_MESSAGE)
     {
         //readControlMessage(socket, client_id);
@@ -262,8 +286,8 @@ void Server::handleHeaderPacket(const HeaderPacket& packet, std::shared_ptr<boos
 
 void Server::startReadingDataPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id, size_t packet_length)
 {
+    TRACE_ENTER;
     auto self = shared_from_this();
-
 
     // Allocate a buffer to store the incoming data packet
     std::shared_ptr<DataPacket> dataPacket = std::make_shared<DataPacket>();
@@ -299,6 +323,20 @@ void Server::handleDataPacket(uint64_t client_id, const DataPacket& packet)
     std::cout << "Total peak samples: " << packet.numTimeSamples <<std::endl;
 
 
+    std::cout <<"Packet timestamps" <<std::endl;
+    for(auto ts:packet.peak_timestamps)
+    {
+        std::cout << " " << ts;
+    }
+    std::cout << std::endl;
+
+    std::cout << "Waveform Samples:";
+    for (std::complex<short> sample : packet.waveformSamples) 
+    {
+        std::cout << " " << sample;
+    }
+
+
     uint8_t receiverId  = packet.rx_id;
     double latitude     = packet.latitude;
     double longitude    = packet.longitude;
@@ -307,13 +345,13 @@ void Server::handleDataPacket(uint64_t client_id, const DataPacket& packet)
 
     // Store the buffer in memory if required ...
     // Lock the mutex before accessing the client_buffers_ map
-    std::lock_guard<boost::mutex> lock(client_buffers_mutex_);
+    //std::lock_guard<boost::mutex> lock(client_buffers_mutex_);
     // Store the data packet in the client's buffer
     client_buffers_[client_id].push(packet);
 
     //Store TOA to TOA Queue
-    std::lock_guard<boost::mutex> lockq(localization_queue_mutex_);
-    localization_queue_[client_id].emplace(packet.peak_timestamps->begin(), packet.peak_timestamps->end());
+    //std::lock_guard<boost::mutex> lockq(localization_queue_mutex_);
+    localization_queue_[client_id].emplace(packet.peak_timestamps.begin(), packet.peak_timestamps.end());
 
     //increase the count
     int numClientsDataReceived = numClientsDataReceived_.fetch_add(1);
@@ -323,12 +361,151 @@ void Server::handleDataPacket(uint64_t client_id, const DataPacket& packet)
     if (numClientsDataReceived == num_max_supported_client) 
     {
         // Notify the localization thread to start processing
-        std::unique_lock <std::mutex> lock(loc_th_mutex_);
+        //std::unique_lock <std::mutex> lock(loc_th_mutex_);
         start_localization_.store(true);
         cv_loc_wait.notify_one();
     }
 
 }
+
+bool Server::is_data_read_complete()
+{
+    bool retval = false;
+    int num_client = numClientsDataReceived_.load();
+    if (num_client == num_max_supported_client) 
+    {
+        retval = true;
+    }
+    return retval;
+}
+
+void Server::send_receive_sequentially(std::string& command)
+{
+    TRACE_ENTER;
+    boost::unique_lock<boost::mutex> lock(sockets_mutex_);
+
+    for (const auto& pair : sockets_) 
+    {
+        std::cout << "Send control command: " << command << " to client: " << pair.first << std::endl;
+        
+        try 
+        {
+            boost::asio::write(*pair.second, boost::asio::buffer(command + "\n"));
+        } 
+        catch (const boost::system::system_error& e) 
+        {
+            std::cerr << "Error while sending command to client: " << e.what() << std::endl;
+            // Handle the error, such as closing the socket or taking appropriate action
+            continue;  // Skip receiving from this client if sending the command failed
+        }
+        
+        // Now receive the header packet from the same client
+        std::cout << "Receive header packet from client: " << pair.first << std::endl;
+        std::shared_ptr<HeaderPacket> header = std::make_shared<HeaderPacket>();
+        std::vector<char> headerPacketBuffer(PacketUtils::HEADER_PACKET_SIZE);
+
+        try
+        {
+            std::size_t bytesRead = boost::asio::read(*pair.second, boost::asio::buffer(headerPacketBuffer));
+
+            if (bytesRead == PacketUtils::HEADER_PACKET_SIZE)
+            {
+                *header = PacketUtils::parseHeaderPacket(headerPacketBuffer);
+#ifdef DEBUG
+                // Print the parsed header packet
+                std::cout << "Parsed Header Packet:" << std::endl;
+                std::cout << "Packet ID: " << header->packet_id << std::endl;
+                std::cout << "Packet Timestamp: " << header->pkt_ts << std::endl;
+                std::cout << "Packet Type: " << header->packet_type << std::endl;
+                std::cout << "Packet Length: " << header->packet_length << std::endl;
+#endif
+            }
+            else
+            {
+                std::cerr << "Error: Received header size is incorrect" << std::endl;
+                // Handle the error case where the size of the received header is incorrect
+                continue;  // Skip receiving data packet from this client
+            }
+        }
+        catch (const boost::system::system_error& e)
+        {
+            std::cerr << "Error while receiving header packet from client: " << pair.first << " - " << e.what() << std::endl;
+            continue;  // Skip receiving data packet from this client
+        }
+        
+        // Now receive the data packet from the same client
+        std::cout << "Receive data packet from client: " << pair.first << std::endl;
+        DataPacket dataPacket;
+        std::size_t packetSize = header->packet_length;
+        std::vector<char> dataPacketBuffer(packetSize);
+
+        try
+        {
+            std::size_t bytesRead = boost::asio::read(*pair.second, boost::asio::buffer(dataPacketBuffer));
+
+            if (bytesRead == packetSize)
+            {
+                PacketUtils::parseDataPacket(dataPacketBuffer, dataPacket);
+
+                // Handle the received data packet
+                handleReceivedData(pair.first, *header, dataPacket);
+            }
+            else
+            {
+                std::cerr << "Error: Received data packet size is incorrect" << std::endl;
+                // Handle the error case where the size of the received data packet is incorrect
+            }
+        }
+        catch (const boost::system::system_error& e)
+        {
+            std::cerr << "Error while receiving data packet from client: " << pair.first << " - " << e.what() << std::endl;
+        }
+    }
+    start_localization_.store(true);
+
+    std::unique_lock <std::mutex> lockth(loc_th_mutex_);
+    cv_loc_wait.notify_one();
+
+    TRACE_EXIT;
+}
+
+void Server::handleReceivedData(uint64_t client_id, const HeaderPacket& header, const DataPacket& packet)
+{
+#ifdef DEBUG
+    // Process the received header and data packets
+    std::cout << "Received data from client " << client_id << std::endl;
+    std::cout << "Parsed Header Packet:" << std::endl;
+    std::cout << "Packet ID: " << header.packet_id << std::endl;
+    std::cout << "Packet Timestamp: " << header.pkt_ts << std::endl;
+    std::cout << "Packet Type: " << header.packet_type << std::endl;
+    std::cout << "Packet Length: " << header.packet_length << std::endl;
+    std::cout << "Parsed Data Packet:" << std::endl;
+    std::cout << "Receiver ID: " << packet.rx_id << std::endl;
+    std::cout << "GPS Data latitude: " << packet.latitude << std::endl;
+    std::cout << "GPS Data longitude:" << packet.longitude << std::endl;
+    std::cout << "GPS Data altitude: " << packet.altitude << std::endl;
+    std::cout << "Total peak samples: " << packet.numTimeSamples << std::endl;
+    for(auto ts: packet.peak_timestamps)
+    {
+        std::cout << "Timesample: " << ts <<std::endl;
+    }
+
+    for(auto wv: packet.waveformSamples)
+    {
+        std::cout << "Waveform: " << wv <<std::endl;
+    }
+#endif
+    //std::lock_guard<boost::mutex> lock(client_buffers_mutex_);
+    // Store the data packet in the client's buffer
+    client_buffers_[client_id].push(packet);
+
+    //Store TOA to TOA Queue
+    //std::lock_guard<boost::mutex> lockq(localization_queue_mutex_);
+    localization_queue_[client_id].push(packet.peak_timestamps);
+
+}
+
+
 #if 0
 void readControlMessage(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id)
 {

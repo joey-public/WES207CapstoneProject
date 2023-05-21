@@ -57,6 +57,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_executable(host_controller
         ${CMAKE_SOURCE_DIR}/src/main.cpp 
         ${CMAKE_SOURCE_DIR}/src/host_controller.cpp
+        ${CMAKE_SOURCE_DIR}/src/localization.cpp
         ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
