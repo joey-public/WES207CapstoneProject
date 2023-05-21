@@ -9,6 +9,7 @@
 #include <boost/asio.hpp>
 #include <boost/thread/mutex.hpp>
 #include "PacketUtils.h"
+#include <atomic>
 
 class Server:public std::enable_shared_from_this<Server>
 {
@@ -25,6 +26,8 @@ public:
     std::thread localization_thread_;
     static const uint32_t num_max_supported_client;
     void read_from_client();
+    bool is_data_read_complete();
+    void send_receive_sequentially(std::string& command);
 
 private:
     void handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,const boost::system::error_code& error);
@@ -39,6 +42,7 @@ private:
     void handleHeaderPacket(const HeaderPacket& packet, std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id);
     void startReadingDataPacket(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id, size_t packet_length);
     void handleDataPacket(uint64_t, const DataPacket& packet);
+    void handleReceivedData(uint64_t client_id, const HeaderPacket& header, const DataPacket& packet);
     //void readControlMessage(std::shared_ptr<boost::asio::ip::tcp::socket> socket, uint64_t client_id);
    
 
@@ -54,6 +58,11 @@ private:
     boost::mutex sockets_mutex_;
     std::string server_addr_;
     uint32_t server_port_;
+    std::mutex loc_th_mutex_;
+    std::atomic<bool> start_localization_;
+    std::condition_variable cv_loc_wait;
+    std::atomic<int> numClientsDataReceived_;
+
 };
 
 #endif //HOST_CONTROLLER_H

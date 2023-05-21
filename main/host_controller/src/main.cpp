@@ -7,6 +7,7 @@ int main(int argc, char* argv[])
 {
     try 
     {
+        std::atomic<bool> is_receive_active(false); 
         if (argc != 3) 
         {
           std::cerr << "Usage: ./host_controller <server_address> <server_port>" << std::endl;
@@ -48,11 +49,17 @@ int main(int argc, char* argv[])
 
         // handle control commands from the console
         std::string command;
-        while (std::getline(std::cin, command)) 
+        while (false == is_receive_active.load() && std::getline(std::cin, command)) 
         {
-            if (command == "config" || command == "sync" || command == "stream" || command == "stop"|| command == "send")
+            if (command == "config" || command == "sync" 
+            || command == "stream" || command == "stop")
             {
                 server.broadcast_control_command(command);
+            }
+            else if(command == "send")
+            {
+              //send and receive sequentially
+              server.send_receive_sequentially(command);
             }
             else if(command == "disconnect")
             {
@@ -70,11 +77,15 @@ int main(int argc, char* argv[])
             {
               std::cout << "Unknown command \"" << command << "\"" << std::endl;
             }
+            #if 0
             //receive data
             if(command == "send")
             {
+              std::cout<<"Host controller going to read samples" <<std::endl;
+              is_receive_active.store(true);
               server.read_from_client();
             }
+            #endif
         }
           // Join the localization thread
           localization_thread.join();

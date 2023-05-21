@@ -2,12 +2,35 @@
 ```mermaid
 graph LR
 A(RX Data Stream)-->B(Take Magnitide)
-B --> C(FIR BPF Filter)
-C --> D(Threshold Detection)
+B--> D(Threshold Detection)
 D --> E{Above Th ?}
-E --> |Yes| F(Dump 30 ms Data to memory)
+E --> |Yes| F(Dump 20 ms Data to memory)
 E --> |No| A
-F --> G(send stored data to CPU)
+```
+
+```mermaid
+graph LR
+A(RX Stream 3s)-->B(Take Magnitide)
+B--> C(Threshold Detection)
+C --> F(Dump 20 ms Data to memory)
+```
+
+```mermaid
+graph TD
+A[start]--> B(wait for config command)
+B-->C{confi recieved?}
+C-->|yes| D(wait for sync command)
+C-->|no| B
+D-->E{sync received?}
+E-->|yes| F(wait for stream command)
+E-->|no| D
+F-->G(Stream and process)
+G-->H(create data packet)
+H-->I(wait for send command)
+I-->J{send recieved?}
+J-->|yes|K(send packet to host controller)
+K-->|no| I
+K-->B
 ```
 
 ## Host main.cpp flowchart

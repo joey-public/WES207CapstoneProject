@@ -9,7 +9,8 @@
 #include "ProcessingFuncs.h"
 #include "TypeDefs.h"
 
-//#include <gnuplot-iostream.h>
+#include "debug.h"
+
 
 //#define SAVE_DATA
 //#define SAVE_DATA_PULSE
@@ -34,7 +35,8 @@ Client::Client(boost::asio::io_context& io_context,
       is_streaming_(false),
       usrp_ip_(usrp_ip),
       stream_seq_id(0),
-      stream_pkt_id(0)
+      stream_pkt_id(0),
+      is_send_command_active(false)
 {
       
 }
@@ -146,7 +148,7 @@ void Client::synchronize_pps()
     std::cout << "Current USRP Time full sec: " << time_spec.get_full_secs() << std::endl;
     std::cout << "Current USRP Time Real sec: " << time_spec.get_real_secs() << std::endl;
     std::cout << "Current USRP Time Tick count: "<< time_spec.get_tick_count(time_spec.get_frac_secs()) << std::endl;
-
+    
     is_synchronized_ = true;
     std::cout << "Synchronized to PPS." << std::endl;
 }
@@ -278,42 +280,53 @@ void Client::stop_streaming()
     std::cout << "Streaming stopped." << std::endl;
 }
 
-void Client::send_sample(const Sample& sample)
-{
-    std::ostringstream sample_stream;
-    sample_stream << sample.client_id << " " << sample.timestamp << " " << sample.peak << "\n";
-    std::string sample_string = sample_stream.str();
-    boost::asio::write(socket_, boost::asio::buffer(sample_string));
-}
-
 void Client::control_command_handler()
 {
     while (true) 
     {
-        boost::asio::streambuf command_buffer;
-        boost::asio::read_until(socket_, command_buffer, '\n');
-        std::istream command_stream(&command_buffer);
-        std::string command;
-        command_stream >> command;
-        if (command == "config") 
+        bool isSendActive = is_send_command_active.load();
+
+        if( isSendActive == false)
         {
-            configure_usrp();
-        } 
-        else if (command == "sync") 
-        {
-            synchronize_pps();
-        } 
-        else if (command == "stream") 
-        {
-            start_streaming();
-        } 
-        else if (command == "stop") 
-        {
-            stop_streaming();
-        } 
-        else 
-        {
-            std::cout << "Invalid command received from server." << std::endl;
+            boost::asio::streambuf command_buffer;
+            try
+            {
+                boost::asio::read_until(socket_, command_buffer, '\n');
+                std::istream command_stream(&command_buffer);
+                std::string command;
+                command_stream >> command;
+                if (command == "config") 
+                {
+                    configure_usrp();
+                } 
+                else if (command == "sync") 
+                {
+                    synchronize_pps();
+                } 
+                else if (command == "stream") 
+                {
+                    start_streaming();
+                } 
+                else if (command == "stop") 
+                {
+                    stop_streaming();
+                }
+                else if (command == "send")
+                {   
+                    is_send_command_active.store(true);
+                    //send_dsp_data();
+                    send_dsp_data_sequentially();
+                } 
+                else 
+                {
+                    std::cout << "Invalid command received from server." << std::endl;
+                }
+            }
+            catch(const boost::system::system_error& e)
+            {
+                std::cerr << "Read until error: " << e.what() << std::endl;
+                break;
+            }
         }
     }
 }
@@ -338,87 +351,125 @@ void Client::dsp_handler()
 
 void handleSend(const boost::system::error_code& error, std::size_t bytes_transferred)
 {
+    TRACE_ENTER;
     if (!error)
     {
         // Send operation completed successfully
-        // You can perform any necessary actions here
         std::cout << "Send operation completed successfully" << std::endl;
     }
     else
     {
         // Handle send error
-        // You can implement appropriate error handling mechanisms here
         std::cerr << "Send error: " << error.message() << std::endl;
     }
 }
 
 void Client::send_dsp_data()
 {
-        std::cout << "Creating header packet" << std::endl;
+        TRACE_ENTER;
+        std::vector<char> headerPacketBuffer;
+        std::vector<char> dataPacketBuffer;
+        create_header_data_packet(headerPacketBuffer, dataPacketBuffer);
+        // Asynchronously send the header
+        try
+        {
+            TRACE_ENTER;
+            boost::asio::async_write(socket_, boost::asio::buffer(headerPacketBuffer),
+            [&](const boost::system::error_code& error, std::size_t bytes_transferred)
+            {
+                TRACE_ENTER;
+                if (!error)
+                {
+                    // Header sent successfully, now send the data
+                    #if 0
+                        boost::asio::async_write(socket_, boost::asio::buffer(dataPacketBuffer),
+                        [&](const boost::system::error_code& error, std::size_t bytes_transferred)
+                        {
+                            handleSend(error, bytes_transferred);
+                        });
+                    #endif
+                    handleSend(error, bytes_transferred);
+                }
+                else
+                {
+                    TRACE_ENTER;
+                    handleSend(error, bytes_transferred);
+                }
+            });
+        }
+        catch (const boost::system::system_error& e)
+        {
+            handleSend(e.code(), 0);
+        }
+        is_send_command_active.store(false);
+}
+
+void Client::send_dsp_data_sequentially()
+{
+
+        TRACE_ENTER;
+        try
+        {
+            std::vector<char> headerPacketBuffer;
+            std::vector<char> dataPacketBuffer;
+            create_header_data_packet(headerPacketBuffer, dataPacketBuffer);
+
+            // Send the header packet synchronously
+            boost::asio::write(socket_, boost::asio::buffer(headerPacketBuffer, headerPacketBuffer.size()));
+            //see if a delay is needed
+            boost::asio::write(socket_, boost::asio::buffer(dataPacketBuffer, dataPacketBuffer.size()));
+
+            // Handle the send operation
+            handleSend(boost::system::error_code(), headerPacketBuffer.size() + dataPacketBuffer.size());
+
+            is_send_command_active.store(false);
+        }
+        catch (const boost::system::system_error& e)
+        {
+            // Handle the exception
+            handleSend(e.code(), 0);
+            is_send_command_active.store(false);
+        }
+}
+
+void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, std::vector<char>& dataPacketBuffer)
+{
         //create header
         HeaderPacket header;
         header.packet_id = stream_pkt_id;
-        header.pkt_ts = 0;
+        header.pkt_ts = 0;//TODO: Insert timestamp if required
         header.packet_type = PACKET_TYPE_DATA;
         std::cout << "\tHeader packet created" << std::endl;
 
         std::cout << "Creating data packet" << std::endl;
         DataPacket data;
-        std::cout << "\tAdding packet ID" << std::endl;
-        data.rx_id = 0; //server needs to send the unique id
-        std::cout << "\tAdding packet timestamps" << std::endl;
-        data.peak_timestamps = &this->peak_timestamp_;
-        std::cout << "\tAdding packet timestamps size" << std::endl;
-        data.numTimeSamples = data.peak_timestamps->size();
+        data.rx_id = client_id_; //server needs to send the unique id
+        data.peak_timestamps = std::move(peak_timestamp_);
+        data.numTimeSamples = data.peak_timestamps.size();
 
         std::cout << "\tAdding lat" << std::endl;
         data.latitude  = -10.2;//constants
         std::cout << "\tAdding long" << std::endl;
         data.longitude = -11.2;
-        std::cout << "\tAdding alt" << std::endl;
-        data.altitude  = 10;
-        std::cout << "\tAdding data samples" << std::endl;
-        data.waveformSamples = &this->waveform_samples_; //not sending the waveform.
-        std::cout << "\tData packet created" << std::endl;
-        header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps->size()+data.waveformSamples->size();
 
-         
+        data.altitude  =  10;
+        data.waveformSamples = std::move(raw_wave_form_);
+        header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
+        std::cout << "Header packet length = " << header.packet_length << std::endl;
+        
         size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
-        std::cout << "Creating packet buffer" << std::endl;
+        
         // Create a packet buffer to store the header packet
-        std::vector<char> headerPacketBuffer(header_size);
+        headerPacketBuffer.resize(header_size);
         PacketUtils::createHeaderPacket(header, headerPacketBuffer);
         
          // Create a packet buffer to store the data packet
         std::size_t packetSize = PacketUtils::DATA_PACKET_FIXED_SIZE 
-        + data.peak_timestamps->size() * sizeof(double) 
-        + data.waveformSamples->size() * sizeof(std::complex<short>);
-        std::vector<char> dataPacketBuffer(packetSize);
+        + data.peak_timestamps.size() * sizeof(double) 
+        + data.waveformSamples.size() * sizeof(std::complex<short>);
+        dataPacketBuffer.resize(packetSize);
         PacketUtils::createDataPacket(data, dataPacketBuffer);
-
-        // Asynchronously send the header
-        std::cout << "Sending the packet" << std::endl;
-        boost::asio::async_write(socket_, boost::asio::buffer(headerPacketBuffer),
-        [&](const boost::system::error_code& error, std::size_t bytes_transferred)
-        {
-            if (!error)
-            {
-                // Header sent successfully, now send the data
-                    boost::asio::async_write(socket_, boost::asio::buffer(dataPacketBuffer),
-                    [&](const boost::system::error_code& error, std::size_t bytes_transferred)
-                    {
-                        handleSend(error, bytes_transferred);
-                    });
-            }
-            else
-            {
-                handleSend(error, bytes_transferred);
-            }
-        });
-
-
 }
-
 
 void Client::recv_to_file(void)
 {
@@ -476,7 +527,7 @@ void Client::recv_to_file(void)
     // Track time and samps between updating the BW summary
     auto last_update                     = start_time;
     unsigned long long last_update_samps = 0;
-
+    stream_seq_id = 0;
     // Run this loop until either time expired (if a duration was given), until
     // the requested number of samples were collected (if such a number was
     // given), or until Ctrl-C was pressed.
@@ -537,14 +588,12 @@ void Client::recv_to_file(void)
                 md_time_info.frac_secs = md.time_spec.get_frac_secs();
                 stream_seq_id++;
                 //Just queue timestamp assuming 
-                if(stream_seq_id%333 == 0 && !sim_timestamp_count)
+                if(stream_seq_id < 2)
                 {
-                    peak_timestamp_.push_back((md_time_info.full_secs+md_time_info.frac_secs));
-                    if(stream_seq_id == 333)
-                    {
-                        sim_timestamp_count = 1;
-                        std::cout << "Total time sample collected:" << peak_timestamp_.size() <<std::endl;
-                    }
+                    std::vector<double> ts = {1,2,3,4,5};
+                    std::vector<std::complex<short>> wv = {1,2,3,4,5};
+                    peak_timestamp_= std::move(ts);
+                    raw_wave_form_ = std::move(wv);
                 }
 
 #if 0
