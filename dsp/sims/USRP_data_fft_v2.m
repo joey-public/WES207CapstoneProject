@@ -1,0 +1,191 @@
+% This script makes various plots of the received signal to determine its
+% characteristics
+% v2 is for the new data format with timestamps
+clear all
+close all
+
+%% PARAMETERS
+threshold = 550; %10m
+%threshold = 390; %threshold to determine when signal is received. will need to figure out a way to set this
+fs = 10e6; %sample rate of USRP capture (Hz)
+
+%use idxoffset to ignore samples at beginning of file
+%for some reason there is always a spike near the beginning
+%so default is 20
+%idxoffset = 20;
+idxoffset = 1e7;
+
+%%
+% read data from file
+datafile = fopen('usrp_pps_data_joey_20230515/usrp_pps_data_10m.dat'); % filename of USRP capture File
+%datafile = fopen('usrp_pps_data_vinit/usrp_pps_data30.dat'); % filename of USRP capture File
+filedata = fread(datafile,'int16'); % data from USRP is stored in 16 bit integers
+
+%remove timestamps
+%timestamps consist of a 64 bit integer and a double and are spaced every 10000 samples
+%so remove those 128 bits of data by removing the first 8 16 bit elements
+%of each 20008 elements of this array
+%(The data is stored in 20000 elements because the real and complex parts
+%are stored separately)
+samples = reshape(filedata,20008,[]);
+samples = reshape(samples(9:end,:),[],1);
+
+%16 bit integers alternate between the real and imaginary parts
+realdata = samples(1:2:end);
+imagdata = samples(2:2:end);
+
+data = realdata+1j*imagdata; %combine into one vector
+
+%[~, loc] = max(abs(realdata));.
+startidx = find(abs(data(idxoffset+1:end))>threshold,1,'first');
+startidx = startidx + idxoffset;
+
+%% Plot Received Signal
+% figure(1)
+% plot(real(data(loc-500000:loc+500000)))
+% 
+% figure(2)
+% plot(imag(data(loc-500000:loc+500000)))
+figure(21)
+startidx1 = max(startidx-500000,idxoffset);
+samples_to_plot = startidx1:startidx1+1000000;
+plot(samples_to_plot,abs(data(samples_to_plot)))
+grid on
+xlabel("Sample Number")
+ylabel("Amplitude")
+title("Magnitude of Received Signal")
+
+%% Plot real and imaginary parts of received signal near arrival time
+figure(3)
+startidx2 = max(startidx-5000,1);
+samples_to_plot = startidx2:startidx2+15000;
+plot(samples_to_plot,realdata(samples_to_plot))
+hold on
+plot(samples_to_plot,imagdata(samples_to_plot))
+hold off
+grid on
+xlabel("Sample Number")
+ylabel("Amplitude")
+title("Arrival of Signal")
+
+%% Plot magnitude of received signal near arrival time
+figure(31)
+plot(samples_to_plot,abs(data(samples_to_plot)))
+grid on
+xlabel("Sample Number")
+ylabel("Amplitude")
+title("Magnitude of Signal Near Arrival")
+
+%% Plot phase of signal near arrival time
+figure(4)
+plot(samples_to_plot,angle(data(samples_to_plot)))
+grid on
+xlabel("Sample Number")
+ylabel("Phase")
+title("Measured Phase Near Arrival of Signal")
+
+%% Compare phase and magnitude of signal near arrival time
+figure(5)
+samples_to_plot = startidx2+2000:startidx2+6000;
+hold on
+yyaxis left
+ylabel('Amplitude')
+plot(samples_to_plot,realdata(samples_to_plot))
+plot(samples_to_plot,imagdata(samples_to_plot))
+yyaxis right
+plot(samples_to_plot,angle(data(samples_to_plot)))
+ylabel('Phase')
+hold off
+grid on
+xlabel("Sample Number")
+title("Amplitude and Phase of Signal Arrival")
+
+
+%% Compare multiple transmissions
+% [pks, locs] = findpeaks(abs(data),'MinPeakHeight',threshold,'MinPeakDistance',fs/10);
+% 
+% figure(6)
+% bar(locs/fs,pks)
+% grid on
+% xlabel("Time (s)")
+% ylabel("Max Magnitude of Transmission")
+% title("Magnitude Comparison of Signal Captures over time")
+
+% fignum = 100;
+% for k = 1:length(locs)
+%     if(locs(k) > 500000)
+%         figure(fignum+k)
+%         samples_to_plot = locs(k)-500000:locs(k)+500000;
+%         plot(samples_to_plot,abs(data(samples_to_plot)))
+%     end
+% end
+
+%% FFT
+figure(6)
+fftlen = 10000;
+startidx3 = max(startidx-3000,1);
+samples_to_plot = startidx1:startidx1+1000000;
+%samples_to_plot = startidx3:startidx3+fftlen-1;
+f = (-1/2:1/fftlen:1/2-1/fftlen)*fs;
+plot(f,20*log10(fftshift(abs(fft(data(samples_to_plot),fftlen)))));
+grid on
+xlabel("Frequency (Hz)")
+ylabel("Magnitude Squared")
+title("Spectrum of Received Signal")
+
+%% LPF
+samples_to_plot = startidx2+2001:startidx2+12000;
+data_to_filter = data(samples_to_plot);
+%[lpf_b,lpf_a] = cheby2(10,80,1e5/(fs/2));
+lpf_b = firpm(1000,[0 50000 100000 fs/2]/(fs/2),[1 1 0 0]);
+%lpf_b = ones(1000,1);
+lpf_a = 1;
+
+% filtered_data_real = filter(lpf_b,lpf_a,real(data_to_filter));
+% filtered_data_imag = filter(lpf_b,lpf_a,imag(data_to_filter));
+% filtered_data = filtered_data_real + 1j*filtered_data_imag;
+
+filtered_data = filter(lpf_b,lpf_a,data_to_filter);
+
+H_lpf = fftshift(abs(fft(lpf_b,fftlen)));
+
+figure(7)
+samples_to_plot = startidx:startidx+fftlen-1;
+f = (-1/2:1/fftlen:1/2-1/fftlen)*fs;
+plot(f,20*log10(fftshift(abs(fft(filtered_data,fftlen)))));
+grid on
+xlabel("Frequency (Hz)")
+ylabel("Magnitude Squared")
+title("Spectrum of Filtered Signal")
+
+figure(71)
+f = (-1/2:1/fftlen:1/2-1/fftlen)*fs;
+plot(f,20*log10(H_lpf));
+grid on
+xlabel("Frequency (Hz)")
+ylabel("Magnitude Squared")
+title("Filter Frequency Response")
+
+figure(8)
+plot(abs(filtered_data))
+grid on
+xlabel("Sample Number")
+ylabel("Amplitude")
+title("Magnitude of Filtered Signal Near Arrival")
+
+%% Compare phase and magnitude of Filtered signal near arrival time
+figure(9)
+filtered_plot_offset = 500000;
+samples_to_plot = filtered_plot_offset:filtered_plot_offset+3000;
+hold on
+yyaxis left
+ylabel('Amplitude')
+plot(real(filtered_data))
+plot(imag(filtered_data))
+yyaxis right
+plot(angle(filtered_data))
+ylabel('Phase')
+hold off
+grid on
+xlabel("Sample Number")
+title("Amplitude and Phase of Signal Arrival")
