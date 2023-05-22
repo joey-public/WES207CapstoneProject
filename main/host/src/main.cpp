@@ -2,7 +2,7 @@
 #include "TestNoNet.h"
 #include "TypeDefs.h"
 
-//#define RUN_TEST
+#define RUN_TEST
 #define RUN_HOST
 
 int main(int argc, char* argv[])
@@ -10,6 +10,8 @@ int main(int argc, char* argv[])
 #ifdef RUN_TEST
     test();
 #endif
+
+#ifdef RUN_HOST_
 
     if (argc != 4) 
     {
@@ -24,6 +26,7 @@ int main(int argc, char* argv[])
     //client.stop();
     client.control_command_thread_.join();
     client.dsp_thread_.join();
+#endif
 
 return 0;
 }

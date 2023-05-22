@@ -6,6 +6,7 @@
 #include <memory>
 #include "localization.h"
 #include "debug.h"
+#include "UtilFuncs.h"
 
 const uint32_t Server:: num_max_supported_client = 1;
 
@@ -461,9 +462,20 @@ void Server::send_receive_sequentially(std::string& command)
         {
             std::cerr << "Error while receiving data packet from client: " << pair.first << " - " << e.what() << std::endl;
         }
+        std::cout << "Recieved Data Packet: " << std::endl;
+        std::cout << "\trx_id: " << dataPacket.rx_id << std::endl;
+        std::cout << "\tlong: " << dataPacket.longitude << std::endl;
+        std::cout << "\tlat: " << dataPacket.latitude << std::endl;
+        std::cout << "\talt: " << dataPacket.altitude << std::endl;
+        std::cout << "\tNum Time Stamps: " << dataPacket.numTimeSamples << std::endl;
+        std::cout << "\tpeak timestamps: " << dataPacket.peak_timestamps[0] << std::endl;
+        std::cout << "\twaveform samples len: " << dataPacket.waveformSamples.size() << std::endl;
+        std::cout << "\tSaving Pulse data to txt file\n";
+        std::string data_file_path = "./pulse_data.txt"; 
+        util::save_complex_vec_to_file(dataPacket.waveformSamples, data_file_path);
     }
-    start_localization_.store(true);
 
+    start_localization_.store(true);
     std::unique_lock <std::mutex> lockth(loc_th_mutex_);
     cv_loc_wait.notify_one();
 

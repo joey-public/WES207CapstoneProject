@@ -1,7 +1,7 @@
 #include "TestNoNet.h"
 //#define ENABLE_TESTS
 #define ENABLE_USRP
-//#define SAVE_DATA
+#define SAVE_DATA
  
 void test()
 {
@@ -19,7 +19,7 @@ void test()
     std::string ant = "TX/RX";
     std::string clock_ref = "external";
     std::string time_ref = "_external_";
-    double sample_rate = 10e6;
+    double sample_rate = 1e6;
     double center_freq =173935300;
     double gain = 0;
     double bw = 10e6;
@@ -31,7 +31,7 @@ void test()
     
     //cacl buffer size for desired time
     //DO NOT MAKE stream time < 1, this will cause seg fault for some reason...
-    int stream_time = 2;//seconds
+    int stream_time = 1;//seconds
     size_t buffer_sz = stream_time * usrp->get_rx_rate();
 
     //Stream the raw data
@@ -63,7 +63,7 @@ void test()
    
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
-    float threshold = 0.01;
+    int16_t threshold = 15;
     float save_time = 0.02;//20ms 
     int offset_time = 0*usrp->get_rx_rate();
     std::cout << "\tTakeing the magnitude..." << std::endl;

@@ -12,8 +12,8 @@
 #include "debug.h"
 
 
-//#define SAVE_DATA
-//#define SAVE_DATA_PULSE
+#define SAVE_DATA
+#define SAVE_DATA_PULSE
 
 typedef struct md_time_data_s
 {
@@ -82,7 +82,7 @@ void Client::configure_usrp()
     double sample_rate      = 10e6;
     double center_freq      = 173935300;
     double gain             = 0;
-    double bw               = 10e6;
+    double bw               = 1e6;
     //stream settings
     std::string cpu_fmt     = "sc16";
     std::string wire_fmt    = "sc16";
@@ -160,7 +160,7 @@ void Client::start_streaming()
     is_streaming_ = true;
 
     //calc buffer size for desired time
-    int stream_time = 3;//seconds
+    int stream_time = 2;//seconds
     size_t buffer_sz = stream_time * usrp->get_rx_rate();
 
     //Stream the raw data
@@ -193,7 +193,7 @@ void Client::start_streaming()
     
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
-    float threshold = 0.01;
+    int16_t threshold = 15;
     float save_time = 0.02;//20ms 
     int offset_time = 0*usrp->get_rx_rate();
     std::cout << "\tTakeing the magnitude..." << std::endl;
@@ -219,14 +219,15 @@ void Client::start_streaming()
         std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
         int k = int(save_time * usrp->get_rx_rate());
         //save the pulse into a vector
-        this->waveform_samples_ = util::get_subvec(data_buffer, start_idx, k);
-        buff_mem = sizeof(RX_DTYPE) * this->waveform_samples_.size();//bytes 
+        this->raw_wave_form_ = util::get_subvec(data_buffer, start_idx, k);
+        buff_mem = sizeof(RX_DTYPE) * this->raw_wave_form_.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+        std::cout << "\tPulse Data size: " << this->raw_wave_form_.size() << std::endl;
         //save data to file
 #ifdef SAVE_DATA_PULSE
         std::cout << "\tSaving Pulse data to txt file\n";
         data_file_path = "./pulse_data.txt"; 
-        util::save_complex_vec_to_file(this->waveform_samples_, data_file_path);
+        util::save_complex_vec_to_file(this->raw_wave_form_, data_file_path);
 #endif
     }
     std::cout << "Stop Processing Data..." << std::endl;
