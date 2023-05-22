@@ -79,7 +79,7 @@ void Client::configure_usrp()
     std::string ant         = "TX/RX";
     std::string clock_ref   = "external";
     std::string time_ref    = "external";
-    double sample_rate      = 10e6;
+    double sample_rate      = 1e6;
     double center_freq      = 173935300;
     double gain             = 0;
     double bw               = 1e6;
@@ -160,7 +160,7 @@ void Client::start_streaming()
     is_streaming_ = true;
 
     //calc buffer size for desired time
-    int stream_time = 2;//seconds
+    int stream_time = 1;//seconds
     size_t buffer_sz = stream_time * usrp->get_rx_rate();
 
     //Stream the raw data
@@ -193,7 +193,7 @@ void Client::start_streaming()
     
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
-    int16_t threshold = 15;
+    int16_t threshold = 200;
     float save_time = 0.02;//20ms 
     int offset_time = 0*usrp->get_rx_rate();
     std::cout << "\tTakeing the magnitude..." << std::endl;

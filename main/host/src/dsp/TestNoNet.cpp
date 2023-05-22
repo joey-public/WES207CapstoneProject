@@ -63,7 +63,7 @@ void test()
    
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
-    int16_t threshold = 15;
+    int16_t threshold = 200;
     float save_time = 0.02;//20ms 
     int offset_time = 0*usrp->get_rx_rate();
     std::cout << "\tTakeing the magnitude..." << std::endl;
