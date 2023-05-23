@@ -25,6 +25,7 @@ find_package(UHD 4.1.0 REQUIRED)
 # The version in  ^^^^^  here is a minimum version.
 # To specify an exact version:
 #find_package(UHD 4.0.0 EXACT REQUIRED)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 # This example also requires Boost.
 # Set components here, then include UHDBoost to do the actual finding
@@ -51,11 +52,18 @@ add_executable(host
         ${CMAKE_SOURCE_DIR}/src/main.cpp 
         ${CMAKE_SOURCE_DIR}/src/host.cpp
         ${CMAKE_SOURCE_DIR}/src/UsrpInitilizer.cpp
+        ${CMAKE_SOURCE_DIR}/src/dsp/UsrpRxStreamFuncs.cpp
+        ${CMAKE_SOURCE_DIR}/src/dsp/ProcessingFuncs.cpp
+        ${CMAKE_SOURCE_DIR}/src/dsp/UsrpInitFuncs.cpp
+        ${CMAKE_SOURCE_DIR}/src/dsp/TestNoNet.cpp
+        ${CMAKE_SOURCE_DIR}/../common/src/UtilFuncs.cpp
         ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")
 message(STATUS "******************************************************************************")
+
+target_link_libraries (host Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):

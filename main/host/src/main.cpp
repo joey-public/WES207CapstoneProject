@@ -1,7 +1,17 @@
 #include "host.h"
+#include "TestNoNet.h"
+#include "TypeDefs.h"
+
 
 int main(int argc, char* argv[])
 {
+
+    if (argc == 1)
+    {
+        test();
+        return 0;
+    }
+
     if (argc != 4) 
     {
         std::cerr << "Usage: ./host <server_address> <server_port> <usrp_ip>" << std::endl;

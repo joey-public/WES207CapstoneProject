@@ -9,6 +9,8 @@
 #include "UsrpInitilizer.h"
 #include <atomic>
 
+#include "TypeDefs.h"
+
 class Client 
 {
 public:
@@ -22,6 +24,7 @@ public:
     void configure_usrp();
     void synchronize_pps();
     void start_streaming();
+
     void stop_streaming();
     std::thread control_command_thread_;
     std::thread dsp_thread_;
@@ -29,6 +32,9 @@ public:
 private:
     void control_command_handler();
     void dsp_handler();
+    
+    void analyze_raw_data(size_t buffer_sz);
+    void process_raw_data(std::vector<RX_DTYPE> data_buffer);
 
     boost::asio::io_context& io_context_;
     boost::asio::ip::tcp::socket socket_;
@@ -44,7 +50,7 @@ private:
     UsrpInitilizer* usrp_handler = NULL;
     void recv_to_file(void);
     std::vector<double> peak_timestamp_;
-    std::vector<std::complex<short>> raw_wave_form_;
+    std::vector<RX_DTYPE> raw_wave_form_;
     uint64_t stream_seq_id;
     uint64_t stream_pkt_id;
     void send_dsp_data();

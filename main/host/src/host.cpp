@@ -3,8 +3,17 @@
 #include <fstream>
 #include <istream>
 #include "PacketUtils.h"
+
+#include "UsrpRxStreamFuncs.h"
+#include "UtilFuncs.h"
+#include "ProcessingFuncs.h"
+#include "TypeDefs.h"
+
 #include "debug.h"
-//#include <gnuplot-iostream.h>
+
+
+#define SAVE_DATA
+#define SAVE_DATA_PULSE
 
 typedef struct md_time_data_s
 {
@@ -70,10 +79,10 @@ void Client::configure_usrp()
     std::string ant         = "TX/RX";
     std::string clock_ref   = "external";
     std::string time_ref    = "external";
-    double sample_rate      = 10e6;
+    double sample_rate      = 1e6;
     double center_freq      = 173935300;
     double gain             = 0;
-    double bw               = 10e6;
+    double bw               = 1e6;
     //stream settings
     std::string cpu_fmt     = "sc16";
     std::string wire_fmt    = "sc16";
@@ -146,11 +155,83 @@ void Client::synchronize_pps()
 
 void Client::start_streaming()
 {
-    std::cout << "Starting streaming..." << std::endl;
-    // start streaming here
+    uhd::usrp::multi_usrp::sptr usrp = usrp_handler->get_usrp(); 
+
     is_streaming_ = true;
-    //stream data store it in a vector. Also store toa of all the packets.
-    recv_to_file();
+
+    //calc buffer size for desired time
+    int stream_time = 1;//seconds
+    size_t buffer_sz = stream_time * usrp->get_rx_rate();
+
+    //Stream the raw data
+    //fill the buffer with data from the usrp
+    std::vector<RX_DTYPE> data_buffer(buffer_sz);
+    std::cout << "-------------------------------------" << std::endl;
+    std::cout << "Start Streaming Data..." << std::endl;
+    rx_strm::stream_rx_data_nsamps(usrp, buffer_sz, &data_buffer.front(), 
+                                       "sc16", "sc16");
+    std::cout << "Stop Streaming Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+
+    //Analyze the raw data
+    std::cout << "Analyzing Raw Data..." << std::endl;
+    float buff_mem = sizeof(RX_DTYPE) * buffer_sz;//bytes 
+    //print stats about size of data buffer
+    std::cout << "\tCollected " << stream_time << "s of raw data at fs = "
+              << usrp->get_rx_rate() << std::endl;
+    std::cout << "\tBuffer length: " << buffer_sz << std::endl;
+    std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+    //save data to file (optional)
+    std::string data_file_path = ""; 
+#ifdef SAVE_DATA
+    std::cout << "\tSaving Raw data to txt file\n";
+    data_file_path = "./raw_data.txt"; 
+    util::save_complex_vec_to_file(data_buffer, data_file_path);
+#endif
+    std::cout << "Done Analyzing Raw Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
+    
+    //Process the data
+    std::cout << "Start Processing Data..." << std::endl;
+    int16_t threshold = 200;
+    float save_time = 0.02;//20ms 
+    int offset_time = 0*usrp->get_rx_rate();
+    std::cout << "\tTakeing the magnitude..." << std::endl;
+    std::vector<float> mag_data = proc::calc_mag(data_buffer);
+    buff_mem = sizeof(float) * mag_data.size();//bytes 
+    std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+    //save data to file (optional)
+#ifdef SAVE_DATA
+    std::cout << "\tSaving Mag data to txt file...\n";
+    data_file_path = "./mag_data.txt"; 
+    util::save_float_vec_to_file(mag_data, data_file_path);
+#endif
+    std::cout << "\tDoing threshold detection..." << std::endl;
+    int start_idx = proc::detect_threshold(mag_data, threshold, offset_time);
+    if (start_idx < 0)
+    {
+        this->peak_timestamp_.push_back(0.0); 
+        std::cout << "\tNo Peak Detected...\n";
+    }
+    else
+    {
+        this->peak_timestamp_.push_back(start_idx / usrp->get_rx_rate());  
+        std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
+        int k = int(save_time * usrp->get_rx_rate());
+        //save the pulse into a vector
+        this->raw_wave_form_ = util::get_subvec(data_buffer, start_idx, k);
+        buff_mem = sizeof(RX_DTYPE) * this->raw_wave_form_.size();//bytes 
+        std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
+        std::cout << "\tPulse Data size: " << this->raw_wave_form_.size() << std::endl;
+        //save data to file
+#ifdef SAVE_DATA_PULSE
+        std::cout << "\tSaving Pulse data to txt file\n";
+        data_file_path = "./pulse_data.txt"; 
+        util::save_complex_vec_to_file(this->raw_wave_form_, data_file_path);
+#endif
+    }
+    std::cout << "Stop Processing Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
     
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)
@@ -160,8 +241,17 @@ void Client::start_streaming()
         conditionVariable_host.notify_one();
     }
     
-    std::cout << "Streaming stopped." << std::endl;
+    std::cout << "Streaming Done!" << std::endl;
 }
+
+void Client::analyze_raw_data(size_t buffer_sz)
+{
+}
+
+void Client::process_raw_data(std::vector<RX_DTYPE> data_buffer)
+{
+}
+
 
 void Client::stop_streaming()
 {
@@ -350,14 +440,19 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
         header.packet_id = stream_pkt_id;
         header.pkt_ts = 0;//TODO: Insert timestamp if required
         header.packet_type = PACKET_TYPE_DATA;
+        std::cout << "\tHeader packet created" << std::endl;
 
+        std::cout << "Creating data packet" << std::endl;
         DataPacket data;
         data.rx_id = client_id_; //server needs to send the unique id
         data.peak_timestamps = std::move(peak_timestamp_);
         data.numTimeSamples = data.peak_timestamps.size();
 
+        std::cout << "\tAdding lat" << std::endl;
         data.latitude  = -10.2;//constants
+        std::cout << "\tAdding long" << std::endl;
         data.longitude = -11.2;
+
         data.altitude  =  10;
         data.waveformSamples = std::move(raw_wave_form_);
         header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
@@ -412,12 +507,16 @@ void Client::recv_to_file(void)
     bool overflow_message = true;
 
     // setup streaming
-    uhd::stream_cmd_t stream_cmd((num_requested_samples == 0)
-                                     ? uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS
-                                     : uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
-    stream_cmd.num_samps  = size_t(num_requested_samples);
-    stream_cmd.stream_now = true;
-    stream_cmd.time_spec  = uhd::time_spec_t();
+//    uhd::stream_cmd_t stream_cmd((num_requested_samples == 0)
+//                                     ? uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS
+//                                     : uhd::stream_cmd_t::STREAM_MODE_NUM_SAMPS_AND_DONE);
+//    stream_cmd.num_samps  = size_t(num_requested_samples);
+//    stream_cmd.stream_now = true;
+//    stream_cmd.time_spec  = uhd::time_spec_t();
+    uhd::stream_cmd_t stream_cmd(uhd::stream_cmd_t::STREAM_MODE_START_CONTINUOUS);
+    stream_cmd.num_samps = size_t(num_requested_samples);
+    stream_cmd.stream_now = false;
+    stream_cmd.time_spec = this->usrp_handler->get_usrp()->get_time_now().get_real_secs() + 0.2;
     rx_stream->issue_stream_cmd(stream_cmd);
 
     typedef std::map<size_t, size_t> SizeMap;

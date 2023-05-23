@@ -5,13 +5,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
-#
-# Capstone Project for WES-207
-# UCSD MAS
-#
-# 
 cmake_minimum_required(VERSION 3.5.1)
-project(HOST_CONTROLLER CXX)
+project(INIT_USRP CXX)
 
 ### Configure Compiler ########################################################
 set(CMAKE_CXX_STANDARD 11)
@@ -29,12 +24,11 @@ option(UHD_USE_STATIC_LIBS OFF)
 
 # To add UHD as a dependency to this project, add a line such as this:
 find_package(UHD 4.1.0 REQUIRED)
-
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 # The version in  ^^^^^  here is a minimum version.
 # To specify an exact version:
 #find_package(UHD 4.0.0 EXACT REQUIRED)
+
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 
 # This example also requires Boost.
 # Set components here, then include UHDBoost to do the actual finding
@@ -42,6 +36,7 @@ set(UHD_BOOST_REQUIRED_COMPONENTS
     program_options
     system
     thread
+    atomic
 )
 set(BOOST_MIN_VERSION 1.65)
 include(UHDBoost)
@@ -50,19 +45,11 @@ include(UHDBoost)
 include_directories(
     ${Boost_INCLUDE_DIRS}
     ${UHD_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/../common/include
 )
 link_directories(${Boost_LIBRARY_DIRS})
 
 ### Make the executable #######################################################
-add_executable(host_controller
-        ${CMAKE_SOURCE_DIR}/src/main.cpp 
-        ${CMAKE_SOURCE_DIR}/src/host_controller.cpp
-        ${CMAKE_SOURCE_DIR}/src/localization.cpp
-        ${CMAKE_SOURCE_DIR}/../common/src/UtilFuncs.cpp
-        ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
+add_executable(main main.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")
@@ -72,18 +59,19 @@ message(STATUS "* exactly match what you require. Make sure to double-check comp
 message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
 
-target_link_libraries (host_controller Eigen3::Eigen) 
+
+target_link_libraries (main Eigen3::Eigen) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 if(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against shared UHD library.")
-    target_link_libraries(host_controller ${UHD_LIBRARIES} ${Boost_LIBRARIES})
+    target_link_libraries(main ${UHD_LIBRARIES} ${Boost_LIBRARIES})
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):
 else(NOT UHD_USE_STATIC_LIBS)
     message(STATUS "Linking against static UHD library.")
-    target_link_libraries(host_controller
+    target_link_libraries(main
         # We could use ${UHD_LIBRARIES}, but linking requires some extra flags,
         # so we use this convenience variable provided to us
         ${UHD_STATIC_LIB_LINK_FLAG}
