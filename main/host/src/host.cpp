@@ -217,6 +217,7 @@ void Client::start_streaming()
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     
+#if 0
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)
     {
@@ -224,7 +225,7 @@ void Client::start_streaming()
         is_streaming_ = false;
         conditionVariable_host.notify_one();
     }
-    
+#endif
     std::cout << "Streaming Done!" << std::endl;
 }
 
@@ -313,7 +314,7 @@ void Client::dsp_handler()
     std::unique_lock<std::mutex> lock(mutex_host);
     while (true) 
     {
-        conditionVariable_host.wait(lock,[this] {return !is_streaming_;}); //return if is_streaming is still true
+        //conditionVariable_host.wait(lock,[this] {return is_streaming_;}); //return if is_streaming is still true
         ++stream_pkt_id;
 
         //create packet

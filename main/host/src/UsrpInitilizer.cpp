@@ -34,7 +34,11 @@ void UsrpInitilizer::initilize(std::string ipaddr)
 
 uhd::usrp::multi_usrp::sptr UsrpInitilizer::init_usrp(std::string ipaddr)
 {
-    this->usrp = uhd::usrp::multi_usrp::make("addr="+ipaddr);
+    //this->usrp = uhd::usrp::multi_usrp::make("addr="+ipaddr);
+    std::string args;
+    this->usrp = uhd::usrp::multi_usrp::make(args);
+    std::cout << boost::format("Using Device: %s\n") % usrp->get_pp_string();
+
     this->set_ip_addr(ipaddr);
     return usrp;
 }
