@@ -147,6 +147,151 @@ void Client::synchronize_pps()
     is_synchronized_ = true;
     std::cout << "Synchronized to PPS." << std::endl;
 }
+//Taken from UHD example
+void Client::synchronize_gps()
+{
+    std::cout << "Synchronizing to GPS Timing..." << std::endl;
+    uhd::usrp::multi_usrp::sptr usrp = usrp_handler->get_usrp();
+
+    // Verify GPS sensors are present (i.e. EEPROM has been burnt)
+    std::vector<std::string> sensor_names = usrp->get_mboard_sensor_names(0);
+
+    // Check for ref lock
+    if (std::find(sensor_names.begin(), sensor_names.end(), "ref_locked")
+        != sensor_names.end()) 
+    {
+        std::cout << "Waiting for ref_locked..." << std::flush;
+        uhd::sensor_value_t ref_locked = usrp->get_mboard_sensor("ref_locked", 0);
+        auto end = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+        while (!ref_locked.to_bool() && std::chrono::steady_clock::now() < end) 
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            ref_locked = usrp->get_mboard_sensor("ref_locked", 0);
+            std::cout << "." << std::flush;
+        }
+            
+        if (not ref_locked.to_bool()) 
+        {
+            std::cout << "USRP NOT Locked to Reference.\n";    
+        }
+        else 
+        {
+            std::cout << "USRP Locked to Reference.\n";
+        }
+    } 
+    else 
+    {
+        std::cout << "ref_locked sensor not present on this board.\n";
+    }
+
+    // The TCXO has a long warm up time, so wait up to 30 seconds for sensor data
+    // to show up
+    std::cout << "Waiting for the GPSDO to warm up..." << std::flush;
+    auto end = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+    while (std::chrono::steady_clock::now() < end) 
+    {
+        try 
+        {
+            usrp->get_mboard_sensor("gps_locked", 0);
+            break;
+        } 
+        catch (std::exception& e) 
+        {
+            std::cerr << "gps_locked: " << e.what() << std::endl;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        std::cout << "." << std::flush;
+    }
+    std::cout << std::endl;
+    try 
+    {
+        usrp->get_mboard_sensor("gps_locked", 0);
+    } 
+    catch (std::exception&) 
+    {
+        std::cout << "No response from GPSDO in 30 seconds" << std::endl;
+    }
+    std::cout << "The GPSDO is warmed up and talking." << std::endl;
+
+    // Check for GPS lock
+    uhd::sensor_value_t gps_locked = usrp->get_mboard_sensor("gps_locked", 0);
+
+    if (not gps_locked.to_bool()) 
+    {
+        std::cout << "\nGPS does not have lock. Wait a few minutes and try again.\n";
+        std::cout << "NMEA strings and device time may not be accurate "
+                     "until lock is achieved.\n\n";
+    } 
+    else 
+    {
+        std::cout << "GPS Locked";
+    }
+
+    // Check PPS and compare UHD device time to GPS time
+    uhd::sensor_value_t gps_time   = usrp->get_mboard_sensor("gps_time");
+    uhd::time_spec_t last_pps_time = usrp->get_time_last_pps();
+
+    // we only care about the full seconds
+    signed gps_seconds    = gps_time.to_int();
+    long long pps_seconds = last_pps_time.to_ticks(1.0);
+
+    if (pps_seconds != gps_seconds) 
+    {
+        std::cout << "\nTrying to align the device time to GPS time..." << std::endl;
+
+        gps_time = usrp->get_mboard_sensor("gps_time");
+
+        // set the device time to the GPS time
+        // getting the GPS time returns just after the PPS edge, so just add a
+        // second and set the device time at the next PPS edge
+        usrp->set_time_next_pps(uhd::time_spec_t(gps_time.to_int() + 1.0));
+        // allow some time to make sure the PPS has come…
+        std::this_thread::sleep_for(std::chrono::milliseconds(1100));
+        //…then ask
+        gps_seconds = usrp->get_mboard_sensor("gps_time").to_int();
+        pps_seconds = usrp->get_time_last_pps().to_ticks(1.0);
+    }
+
+    if (pps_seconds == gps_seconds) 
+    {
+        std::cout << "GPS and UHD Device time are aligned.\n";
+    } 
+    else 
+    {
+        std::cout << "Could not align UHD Device time to GPS time. Giving up.\n";
+    }
+    std::cout << boost::format("last_pps: %ld vs gps: %ld.") % pps_seconds % gps_seconds
+              << std::endl;
+
+    // print NMEA strings
+    std::cout << "Printing available NMEA strings:\n";
+    try 
+    {
+        std::cout << usrp->get_mboard_sensor("gps_gpgga").to_pp_string() << std::endl;
+    } 
+    catch (uhd::lookup_error&) 
+    {
+        std::cout << "GPGGA string not available for this device." << std::endl;
+    }
+    try 
+    {
+        std::cout << usrp->get_mboard_sensor("gps_gprmc").to_pp_string() << std::endl;
+    } catch (uhd::lookup_error&) 
+    {
+        std::cout << "GPRMC string not available for this device." << std::endl;
+    }
+    std::cout << boost::format("GPS Epoch time at last PPS: %.5f seconds\n")
+                     % usrp->get_mboard_sensor("gps_time").to_real();
+    std::cout << boost::format("UHD Device time last PPS:   %.5f seconds\n")
+                     % (usrp->get_time_last_pps().get_real_secs());
+    std::cout << boost::format("UHD Device time right now:  %.5f seconds\n")
+                     % (usrp->get_time_now().get_real_secs());
+    std::cout << boost::format("PC Clock time:              %.5f seconds\n") % time(NULL);
+
+    // finished
+    std::cout << "\nDone!\n\n";
+    
+}
 
 void Client::start_streaming()
 {
@@ -279,7 +424,8 @@ void Client::control_command_handler()
                 } 
                 else if (command == "sync") 
                 {
-                    synchronize_pps();
+                    //synchronize_pps();
+                    synchronize_gps();
                 } 
                 else if (command == "stream") 
                 {
