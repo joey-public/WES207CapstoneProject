@@ -267,16 +267,22 @@ void Client::synchronize_gps()
     std::cout << "Printing available NMEA strings:\n";
     try 
     {
-        std::cout << usrp->get_mboard_sensor("gps_gpgga").to_pp_string() << std::endl;
+        std::string gps_msg = usrp->get_mboard_sensor("gps_gpgga").to_pp_string();
+        std::cout << gps_msg << std::endl;
+        parse_gpgga(gps_msg);
     } 
     catch (uhd::lookup_error&) 
     {
         std::cout << "GPGGA string not available for this device." << std::endl;
     }
+
     try 
     {
-        std::cout << usrp->get_mboard_sensor("gps_gprmc").to_pp_string() << std::endl;
-    } catch (uhd::lookup_error&) 
+        std::string gps_msg = usrp->get_mboard_sensor("gps_gprmc").to_pp_string();
+        std::cout << gps_msg << std::endl;
+        parse_gprmc(gps_msg);
+    } 
+    catch (uhd::lookup_error&) 
     {
         std::cout << "GPRMC string not available for this device." << std::endl;
     }
@@ -571,13 +577,14 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
         data.peak_timestamps = std::move(peak_timestamp_);
         data.numTimeSamples = data.peak_timestamps.size();
 
-        std::cout << "\tAdding lat" << std::endl;
-        data.latitude  = -10.2;//constants
-        std::cout << "\tAdding long" << std::endl;
-        data.longitude = -11.2;
+        std::cout << "\tAdding latitide" << std::endl;
+        data.latitude  = latitude_;//constants
+        std::cout << "\tAdding longitide" << std::endl;
+        data.longitude = longitude_;
 
-        data.altitude  =  10;
-        data.waveformSamples = std::move(this->pulse_data_);
+        std::cout << "\tAdding Altitude" << std::endl;
+        data.altitude  =  altitude_;
+        data.waveformSamples = std::move(raw_wave_form_);
         header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
         std::cout << "Header packet length = " << header.packet_length << std::endl;
         
@@ -781,4 +788,58 @@ void Client::recv_to_file(void)
                 std::cout << it->first << ":\t" << it->second << std::endl;
         }
     }
+}
+
+void Client::parse_gpgga(std::string& gps_msg)
+{
+    std::istringstream ss(gps_msg);
+    std::vector<std::string> tokens;
+
+    std::string token;
+    while (std::getline(ss, token, ','))
+    {
+        tokens.push_back(token);
+    }
+
+    // Access specific information from tokens vector
+    std::string fixTime = tokens[1];
+    std::string latitude = tokens[2];
+    std::string longitude = tokens[4];
+    std::string altitude = tokens[9];
+    longitude_ = std::stod(longitude);
+    latitude_  = std::stod(latitude);
+    altitude_  = std::stod(altitude);
+    // Print the parsed data
+    std::cout << "Fix Time: " << fixTime << std::endl;
+    std::cout << "Latitude: " << latitude_ << std::endl;
+    std::cout << "Longitude: " << longitude_ << std::endl;
+    std::cout << "Altitude: " << altitude_ << std::endl;
+}
+
+void Client::parse_gprmc(std::string& gps_msg)
+{
+    std::istringstream ss(gps_msg);
+    std::vector<std::string> tokens;
+
+    std::string token;
+    while (std::getline(ss, token, ','))
+    {
+        tokens.push_back(token);
+    }
+
+    // Access specific information from tokens vector
+    std::string fixTime = tokens[1];
+    std::string status = tokens[2];
+    std::string latitude = tokens[3];
+    std::string longitude = tokens[5];
+    std::string speed = tokens[7];
+    std::string course = tokens[8];
+
+    // Print the parsed data
+    std::cout << "Fix Time: " << fixTime << std::endl;
+    std::cout << "Status: " << status << std::endl;
+    std::cout << "Latitude: " << latitude << std::endl;
+    std::cout << "Longitude: " << longitude << std::endl;
+    std::cout << "Speed: " << speed << std::endl;
+    std::cout << "Course: " << course << std::endl;
 }
