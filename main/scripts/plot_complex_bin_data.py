@@ -9,7 +9,7 @@ def calc_downsampling_factor(file_path):
     threshold = 5*1024*1024; #5Mb
     downsampling_factor = (file_size // (threshold)) + 1
     downsampling_factor = max(downsampling_factor, 1)
-    print('File Size is {}, data in plots will be downsampled by {}'.format(file_size, downsampling_factor))
+#    print('File Size is {}, data in plots will be downsampled by {}'.format(file_size, downsampling_factor))
     return downsampling_factor
 
 def read_bin_data(file_name, downsampling_factor):
@@ -22,7 +22,7 @@ def read_bin_data(file_name, downsampling_factor):
     reshaped_data = np.reshape(data, (num_complex, 2))
     return reshaped_data
 
-def plot_complex_data(file_name):
+def plot_complex_data(file_name, fs):
     downsampling_factor = calc_downsampling_factor(file_name)
     data = read_bin_data(file_name, downsampling_factor)
     real_part = data[:, 0]
@@ -56,8 +56,9 @@ def plot_complex_data(file_name):
     QApplication.instance().exec_()
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <data_file>") 
+    if len(sys.argv) != 3:
+        print("Usage: python script.py <data_file> <sample rate>") 
         sys.exit(1)
     data_file = sys.argv[1]
-    plot_complex_data(data_file)
+    fs = int(sys.argv[2])
+    plot_complex_data(data_file, fs)

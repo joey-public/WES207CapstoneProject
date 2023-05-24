@@ -63,7 +63,7 @@ void test()
     util::save_complex_vec_to_file_bin(data_buffer, data_file_path);
 #ifdef PLOT_DATA
     std::cout << "\tPlotting Data with python script\n";
-    util::plot_with_python(data_file_path);
+    util::plot_with_python(data_file_path, usrp->get_rx_rate());
 #endif
 #endif
     std::cout << "Done Analyzing Raw Data..." << std::endl;
@@ -104,7 +104,7 @@ void test()
         util::save_complex_vec_to_file_bin(pulse_data, data_file_path);
 #ifdef PLOT_DATA_PULSE
     std::cout << "\tPlotting Data with python script\n";
-    util::plot_with_python(data_file_path);
+    util::plot_with_python(data_file_path, usrp->get_rx_rate());
 #endif
 #endif
     }
