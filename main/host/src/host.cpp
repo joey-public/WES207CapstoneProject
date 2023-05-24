@@ -75,10 +75,10 @@ void Client::configure_usrp()
       
       //usrp settings
     std::string ip          = usrp_ip_;
-    std::string subdev      = "A:0";
+    std::string subdev      = "A:A";
     std::string ant         = "TX/RX";
-    std::string clock_ref   = "external";
-    std::string time_ref    = "external";
+    std::string clock_ref   = "gpsdo";
+    std::string time_ref    = "gpsdo";
     double sample_rate      = 1e6;
     double center_freq      = 173935300;
     double gain             = 0;
@@ -233,6 +233,7 @@ void Client::start_streaming()
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     
+#if 0
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
     if (is_streaming_)
     {
@@ -240,7 +241,7 @@ void Client::start_streaming()
         is_streaming_ = false;
         conditionVariable_host.notify_one();
     }
-    
+#endif
     std::cout << "Streaming Done!" << std::endl;
 }
 
@@ -337,7 +338,7 @@ void Client::dsp_handler()
     std::unique_lock<std::mutex> lock(mutex_host);
     while (true) 
     {
-        conditionVariable_host.wait(lock,[this] {return !is_streaming_;}); //return if is_streaming is still true
+        //conditionVariable_host.wait(lock,[this] {return is_streaming_;}); //return if is_streaming is still true
         ++stream_pkt_id;
 
         //create packet
