@@ -184,9 +184,9 @@ void Client::start_streaming()
     //save data to file (optional)
     std::string data_file_path = ""; 
 #ifdef SAVE_DATA
-    std::cout << "\tSaving Raw data to txt file\n";
-    data_file_path = "./raw_data.txt"; 
-    util::save_complex_vec_to_file(data_buffer, data_file_path);
+    std::cout << "\tSaving Raw data to bin file\n";
+    data_file_path = "./raw_data.bin"; 
+    util::save_complex_vec_to_file_bin(data_buffer, data_file_path);
 #endif
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
@@ -197,15 +197,15 @@ void Client::start_streaming()
     float save_time = 0.02;//20ms 
     int offset_time = 0*usrp->get_rx_rate();
     std::cout << "\tTakeing the magnitude..." << std::endl;
-    std::vector<float> mag_data = proc::calc_mag(data_buffer);
-    buff_mem = sizeof(float) * mag_data.size();//bytes 
+    std::vector<SAMP_DTYPE> mag_data = proc::calc_mag(data_buffer);
+    buff_mem = sizeof(SAMP_DTYPE) * mag_data.size();//bytes 
     std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
     //save data to file (optional)
-#ifdef SAVE_DATA
-    std::cout << "\tSaving Mag data to txt file...\n";
-    data_file_path = "./mag_data.txt"; 
-    util::save_float_vec_to_file(mag_data, data_file_path);
-#endif
+//#ifdef SAVE_DATA
+//    std::cout << "\tSaving Mag data to txt file...\n";
+//    data_file_path = "./mag_data.txt"; 
+//    util::save_float_vec_to_file(mag_data, data_file_path);
+//#endif
     std::cout << "\tDoing threshold detection..." << std::endl;
     int start_idx = proc::detect_threshold(mag_data, threshold, offset_time);
     if (start_idx < 0)
@@ -226,8 +226,8 @@ void Client::start_streaming()
         //save data to file
 #ifdef SAVE_DATA_PULSE
         std::cout << "\tSaving Pulse data to txt file\n";
-        data_file_path = "./pulse_data.txt"; 
-        util::save_complex_vec_to_file(this->raw_wave_form_, data_file_path);
+        data_file_path = "./pulse_data.bin"; 
+        util::save_complex_vec_to_file_bin(this->raw_wave_form_, data_file_path);
 #endif
     }
     std::cout << "Stop Processing Data..." << std::endl;

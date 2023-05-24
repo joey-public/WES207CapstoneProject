@@ -5,38 +5,38 @@ namespace proc {
 void process_data(std::vector<RX_DTYPE> &data_buff)
 {
     std::cout << "Processing Data..." << std::endl;
-    std::vector<float> data_mag = calc_mag(data_buff);
-    float thresh = 1.0;
+    std::vector<SAMP_DTYPE> data_mag = calc_mag(data_buff);
+    SAMP_DTYPE thresh = 100;
     //int n = detect_threshold(data_mag, thresh);
     //optional perform xcorr here
     std::cout << "Done Processing Data..." << std::endl;
 }
 
-std::vector<float> calc_mag(std::vector<RX_DTYPE>& complexVector) 
+std::vector<SAMP_DTYPE> calc_mag(std::vector<RX_DTYPE>& complexVector) 
 {
-    std::vector<float> magnitudes;
+    std::vector<SAMP_DTYPE> magnitudes;
     magnitudes.reserve(complexVector.size());
     for (const auto& complexNumber : complexVector) {
-        float magnitude = std::abs(complexNumber);
+        SAMP_DTYPE magnitude = std::abs(complexNumber);
         magnitudes.push_back(magnitude);
     }
     return magnitudes;
 }
 
-std::vector<float> calc_phase(std::vector<RX_DTYPE>& complexVector) 
+std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector) 
 {
-    std::vector<float> phases;
+    std::vector<SAMP_DTYPE> phases;
     phases.reserve(complexVector.size());
     for (const auto& complexNumber : complexVector) {
-        float phase = std::arg(complexNumber);
+        SAMP_DTYPE phase = std::arg(complexNumber);
         phases.push_back(phase);
     }
     return phases;
 }
 
-int detect_threshold(std::vector<float>& values, float threshold, int offset) 
+int detect_threshold(std::vector<SAMP_DTYPE>& values, SAMP_DTYPE threshold, int offset) 
 {
-    for (std::size_t i = 0; i < values.size(); ++i) {
+    for (std::size_t i = offset; i < values.size(); ++i) {
         if (values[i] > threshold) {
             return static_cast<int>(i);
         }

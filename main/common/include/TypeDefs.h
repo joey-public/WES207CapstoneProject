@@ -4,6 +4,7 @@
 #include <iostream>
 #include <complex>
 
-typedef std::complex<int16_t> RX_DTYPE;
+typedef int16_t SAMP_DTYPE;
+typedef std::complex<SAMP_DTYPE> RX_DTYPE;
 
 #endif

@@ -1,7 +1,8 @@
 #include "TestNoNet.h"
 //#define ENABLE_TESTS
 #define ENABLE_USRP
-#define SAVE_DATA
+//#define SAVE_DATA
+#define SAVE_DATA_PULSE
  
 void test()
 {
@@ -19,7 +20,7 @@ void test()
     std::string ant = "TX/RX";
     std::string clock_ref = "external";
     std::string time_ref = "_external_";
-    double sample_rate = 1e6;
+    double sample_rate = 25e6;
     double center_freq =173935300;
     double gain = 0;
     double bw = 10e6;
@@ -53,31 +54,32 @@ void test()
     std::cout << "\tBuffer length: " << buffer_sz << std::endl;
     std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
     //save data to file
+    std::string data_file_path = ""; 
 #ifdef SAVE_DATA
     std::cout << "\tSaving Raw data to txt file\n";
-    std::string data_file_path = "./raw_data.txt"; 
-    util::save_complex_vec_to_file(data_buffer, data_file_path);
+    data_file_path = "./raw_data.bin"; 
+    util::save_complex_vec_to_file_bin(data_buffer, data_file_path);
 #endif
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
    
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
-    int16_t threshold = 200;
+    int16_t threshold = 1500;
     float save_time = 0.02;//20ms 
-    int offset_time = 0*usrp->get_rx_rate();
+    int offset_samps = 1000;
     std::cout << "\tTakeing the magnitude..." << std::endl;
-    std::vector<float> mag_data = proc::calc_mag(data_buffer);
-    buff_mem = sizeof(float) * mag_data.size();//bytes 
+    std::vector<int16_t> mag_data = proc::calc_mag(data_buffer);
+    buff_mem = sizeof(int16_t) * mag_data.size();//bytes 
     std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
     //save data to file
-#ifdef SAVE_DATA
-    std::cout << "\tSaving Mag data to txt file...\n";
-    data_file_path = "./mag_data.txt"; 
-    util::save_float_vec_to_file(mag_data, data_file_path);
-#endif
+//#ifdef SAVE_DATA
+//    std::cout << "\tSaving Mag data to txt file...\n";
+//    data_file_path = "./mag_data.bin"; 
+//    util::save_float_vec_to_file(mag_data, data_file_path);
+//#endif
     std::cout << "\tDoing threshold detection..." << std::endl;
-    int start_idx = proc::detect_threshold(mag_data, threshold, offset_time);
+    int start_idx = proc::detect_threshold(mag_data, threshold, offset_samps);
     if (start_idx < 0)
     {
         std::cout << "\tNo Peak Detected...\n";
@@ -90,10 +92,10 @@ void test()
         buff_mem = sizeof(RX_DTYPE) * pulse_data.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
         //save data to file
-#ifdef SAVE_DATA
+#ifdef SAVE_DATA_PULSE
         std::cout << "\tSaving Pulse data to txt file\n";
-        data_file_path = "./pulse_data.txt"; 
-        util::save_complex_vec_to_file(pulse_data, data_file_path);
+        data_file_path = "./pulse_data.bin"; 
+        util::save_complex_vec_to_file_bin(pulse_data, data_file_path);
 #endif
     }
     std::cout << "Stop Processing Data..." << std::endl;
