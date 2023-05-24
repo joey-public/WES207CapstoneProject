@@ -1,7 +1,7 @@
 #include "TestNoNet.h"
 //#define ENABLE_TESTS
 #define ENABLE_USRP
-//#define SAVE_DATA
+#define SAVE_DATA
 #define SAVE_DATA_PULSE
  
 void test()
