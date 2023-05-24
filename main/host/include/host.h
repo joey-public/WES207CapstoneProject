@@ -34,6 +34,7 @@ public:
     void stop();
     void configure_usrp();
     void synchronize_pps();
+    void synchronize_gps();
     void start_streaming();
 
     void stop_streaming();
