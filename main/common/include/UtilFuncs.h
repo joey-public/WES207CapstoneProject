@@ -21,9 +21,10 @@ void save_float_vec_to_file(const std::vector<float> &vec,
 void save_complex_vec_to_file_bin(const std::vector<RX_DTYPE>& vec, 
                                        const std::string filename);
 
-
 std::vector<RX_DTYPE> get_subvec(const std::vector<RX_DTYPE> &in_vec, 
                                            int start_idx, int k);
+
+void plot_with_python(std::string data_path);
 
 }//end namespace
 

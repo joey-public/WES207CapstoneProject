@@ -68,24 +68,25 @@ std::vector<RX_DTYPE> get_subvec(const std::vector<RX_DTYPE>&in_vec,
     return out_vec;
 }
 
+void plot_with_python(std::string data_path)
+{
+    std::string python_file = "../../scripts/plot_complex_bin_data.py";
+    std::string command = "python " + python_file + " " + data_path + " &";
+    int result = system(command.c_str());
+    if(result == 0)
+    {
+        //std::cout << "Saved Plot to: " << image_path << std::endl;
+        std::cout << "\t\tPython Script Ran Sucessfully..." << std::endl;
+    }
+    else
+    {
+        std::cout << "\t\tPython Script Failed..." << std::endl;
+    }
+}
+
 }//end namespace
  
 
-//void plot_with_python(std::string python_file, std::string data_path, std::string data_type)
-//{
-//    std::string command = "python " + python_file + " " + data_path + " " + data_type;
-//
-//    int result = system(command.c_str());
-//
-//    if(result == 0)
-//    {
-//        //std::cout << "Saved Plot to: " << image_path << std::endl;
-//    }
-//    else
-//    {
-//        std::cout << "Python Script Failed...." << std::endl;
-//    }
-//}
 //
 //
 //template<typename T>

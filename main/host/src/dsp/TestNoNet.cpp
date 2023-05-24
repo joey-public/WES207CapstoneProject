@@ -3,6 +3,8 @@
 #define ENABLE_USRP
 #define SAVE_DATA
 #define SAVE_DATA_PULSE
+#define PLOT_DATA
+#define PLOT_DATA_PULSE
  
 void test()
 {
@@ -59,6 +61,10 @@ void test()
     std::cout << "\tSaving Raw data to txt file\n";
     data_file_path = "./raw_data.bin"; 
     util::save_complex_vec_to_file_bin(data_buffer, data_file_path);
+#ifdef PLOT_DATA
+    std::cout << "\tPlotting Data with python script\n";
+    util::plot_with_python(data_file_path);
+#endif
 #endif
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
@@ -96,6 +102,10 @@ void test()
         std::cout << "\tSaving Pulse data to txt file\n";
         data_file_path = "./pulse_data.bin"; 
         util::save_complex_vec_to_file_bin(pulse_data, data_file_path);
+#ifdef PLOT_DATA_PULSE
+    std::cout << "\tPlotting Data with python script\n";
+    util::plot_with_python(data_file_path);
+#endif
 #endif
     }
     std::cout << "Stop Processing Data..." << std::endl;
