@@ -5,12 +5,15 @@
 #include <complex>
 #include <vector>
 #include <cmath>
+#include <uhd/usrp/multi_usrp.hpp>
 
 #include <Eigen/Core>
 
 #include "TypeDefs.h"
 
 namespace proc{
+
+void stream_and_process_data(uhd::usrp::multi_usrp::sptr usrp);
 
 void process_data(std::vector<RX_DTYPE> &data_buff);
 
