@@ -1,4 +1,15 @@
 #include "host.h"
+#include <boost/asio/ip/tcp.hpp>
+#include <fstream>
+#include <istream>
+#include "PacketUtils.h"
+
+#include "UsrpRxStreamFuncs.h"
+#include "UtilFuncs.h"
+#include "ProcessingFuncs.h"
+#include "TypeDefs.h"
+
+#include "debug.h"
 
 
 #define SAVE_DATA
@@ -62,6 +73,19 @@ void Client::configure_usrp()
 {
     std::cout << "Configuring USRP..." << std::endl;
       
+      //usrp settings
+    std::string ip          = usrp_ip_;
+    std::string subdev      = "A:A";
+    std::string ant         = "TX/RX";
+    std::string clock_ref   = "gpsdo";
+    std::string time_ref    = "gpsdo";
+    double sample_rate      = 1e6;
+    double center_freq      = 173935300;
+    double gain             = 0;
+    double bw               = 1e6;
+    //stream settings
+    std::string cpu_fmt     = "sc16";
+    std::string wire_fmt    = "sc16";
     size_t channel          = 0;
     double setup_time       = 1;
 
@@ -366,7 +390,6 @@ void Client::start_streaming()
 #endif
     std::cout << "Streaming Done!" << std::endl;
 }
-
 
 void Client::stop_streaming()
 {
