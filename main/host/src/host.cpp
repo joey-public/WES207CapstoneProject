@@ -444,6 +444,10 @@ void Client::control_command_handler()
                     //send_dsp_data();
                     send_dsp_data_sequentially();
                 } 
+                else if (command == "time")
+                {
+                    show_time();
+                }
                 else 
                 {
                     std::cout << "Invalid command received from server." << std::endl;
@@ -839,4 +843,22 @@ void Client::parse_gprmc(std::string& gps_msg)
     std::cout << "Longitude: " << longitude << std::endl;
     std::cout << "Speed: " << speed << std::endl;
     std::cout << "Course: " << course << std::endl;
+}
+
+void Client::show_time()
+{
+    std::cout << "\tTimeing details of current UHD device:" << std::endl;
+    uhd::usrp::multi_usrp::sptr usrp = usrp_handler->get_usrp();
+
+    std::cout << boost::format("GPS Epoch time at last PPS: %.5f seconds\n")
+                     % usrp->get_mboard_sensor("gps_time").to_real();
+    std::cout << boost::format("UHD Device time last PPS:   %.5f seconds\n")
+                     % (usrp->get_time_last_pps().get_real_secs());
+    std::cout << boost::format("UHD Device time right now:  %.5f seconds\n")
+                     % (usrp->get_time_now().get_real_secs());
+    std::cout << boost::format("UHD Device GPS time right now:  %.5f seconds\n")
+                     % (usrp->get_mboard_sensor("gps_time").to_int());
+    std::cout << boost::format("UHD Device PPS time right now:  %.5f seconds\n")
+                     % (usrp->get_time_last_pps().to_ticks(1.0));
+
 }
