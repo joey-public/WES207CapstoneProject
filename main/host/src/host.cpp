@@ -62,21 +62,8 @@ void Client::configure_usrp()
 {
     std::cout << "Configuring USRP..." << std::endl;
       
-      //usrp settings
-//    std::string ip          = usrp_ip_;
-//    std::string subdev      = "A:0";
-//    std::string ant         = "TX/RX";
-//    std::string clock_ref   = "external";
-//    std::string time_ref    = "external";
-//    double sample_rate      = 1e6;
-//    double center_freq      = 173935300;
-//    double gain             = 0;
-//    double bw               = 1e6;
-//    //stream settings
-//    std::string cpu_fmt     = "sc16";
-//    std::string wire_fmt    = "sc16";
-      size_t channel          = 0;
-      double setup_time       = 1;
+    size_t channel          = 0;
+    double setup_time       = 1;
 
     if(NULL == usrp_handler && false == is_configured_)
     {
@@ -584,7 +571,7 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
 
         std::cout << "\tAdding Altitude" << std::endl;
         data.altitude  =  altitude_;
-        data.waveformSamples = std::move(raw_wave_form_);
+        data.waveformSamples = std::move(pulse_data_);
         header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
         std::cout << "Header packet length = " << header.packet_length << std::endl;
         
