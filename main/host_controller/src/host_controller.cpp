@@ -1,12 +1,5 @@
 #include "host_controller.h"
-#include <iostream>
-#include <thread>
-#include <string>
-#include <boost/bind.hpp>
-#include <memory>
-#include "localization.h"
-#include "debug.h"
-#include "UtilFuncs.h"
+
 
 const uint32_t Server:: num_max_supported_client = 1;
 
@@ -471,8 +464,13 @@ void Server::send_receive_sequentially(std::string& command)
         std::cout << "\tpeak timestamps: " << dataPacket.peak_timestamps[0] << std::endl;
         std::cout << "\twaveform samples len: " << dataPacket.waveformSamples.size() << std::endl;
         std::cout << "\tSaving Pulse data to txt file\n";
-        std::string data_file_path = "./pulse_data.txt"; 
-        util::save_complex_vec_to_file(dataPacket.waveformSamples, data_file_path);
+        //std::string data_file_path = "./pulse_data.txt"; 
+        //util::save_complex_vec_to_file(dataPacket.waveformSamples, data_file_path);
+        util::save_and_plot_data(dataPacket.waveformSamples, 
+                                 sett::pulse_data_path, 
+                                 sett::save_pulse_data, 
+                                 sett::plot_pulse_data, 
+                                 sett::usrp_sample_rate);
     }
 
     start_localization_.store(true);

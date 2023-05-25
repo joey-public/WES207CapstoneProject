@@ -11,6 +11,18 @@
 #include "PacketUtils.h"
 #include <atomic>
 
+#include <iostream>
+#include <thread>
+#include <string>
+#include <boost/bind.hpp>
+#include <memory>
+
+#include "localization.h"
+#include "debug.h"
+
+#include "Settings.h"
+#include "UtilFuncs.h"
+
 class Server:public std::enable_shared_from_this<Server>
 {
 public:

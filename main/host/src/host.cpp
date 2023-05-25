@@ -1,15 +1,4 @@
 #include "host.h"
-#include <boost/asio/ip/tcp.hpp>
-#include <fstream>
-#include <istream>
-#include "PacketUtils.h"
-
-#include "UsrpRxStreamFuncs.h"
-#include "UtilFuncs.h"
-#include "ProcessingFuncs.h"
-#include "TypeDefs.h"
-
-#include "debug.h"
 
 
 #define SAVE_DATA
@@ -74,26 +63,32 @@ void Client::configure_usrp()
     std::cout << "Configuring USRP..." << std::endl;
       
       //usrp settings
-    std::string ip          = usrp_ip_;
-    std::string subdev      = "A:0";
-    std::string ant         = "TX/RX";
-    std::string clock_ref   = "external";
-    std::string time_ref    = "external";
-    double sample_rate      = 1e6;
-    double center_freq      = 173935300;
-    double gain             = 0;
-    double bw               = 1e6;
-    //stream settings
-    std::string cpu_fmt     = "sc16";
-    std::string wire_fmt    = "sc16";
-    size_t channel          = 0;
-    double setup_time       = 1;
+//    std::string ip          = usrp_ip_;
+//    std::string subdev      = "A:0";
+//    std::string ant         = "TX/RX";
+//    std::string clock_ref   = "external";
+//    std::string time_ref    = "external";
+//    double sample_rate      = 1e6;
+//    double center_freq      = 173935300;
+//    double gain             = 0;
+//    double bw               = 1e6;
+//    //stream settings
+//    std::string cpu_fmt     = "sc16";
+//    std::string wire_fmt    = "sc16";
+      size_t channel          = 0;
+      double setup_time       = 1;
 
     if(NULL == usrp_handler && false == is_configured_)
     {
-        usrp_handler = new UsrpInitilizer(ip, subdev, ant, 
-                                    clock_ref, time_ref,
-                                    sample_rate, center_freq, gain, bw);
+        usrp_handler = new UsrpInitilizer(sett::usrp_ip,  
+                                          sett::usrp_subdev,  
+                                          sett::usrp_ant, 
+                                          sett::usrp_clock_ref, 
+                                          sett::usrp_time_ref,
+                                          sett::usrp_sample_rate, 
+                                          sett::usrp_center_freq, 
+                                          sett::usrp_gain, 
+                                          sett::usrp_bw);
     }
     std::cout << boost::format("Using Device: %s") % usrp_handler->get_usrp()->get_pp_string() << std::endl;
     std::cout << usrp_handler->get_clock_ref() << std::endl;
@@ -160,54 +155,44 @@ void Client::start_streaming()
     is_streaming_ = true;
 
     //calc buffer size for desired time
-    int stream_time = 1;//seconds
-    size_t buffer_sz = stream_time * usrp->get_rx_rate();
-
-    //Stream the raw data
-    //fill the buffer with data from the usrp
+    size_t buffer_sz = sett::rx_stream_time * usrp->get_rx_rate();
     std::vector<RX_DTYPE> data_buffer(buffer_sz);
+    //Stream the raw data
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Start Streaming Data..." << std::endl;
-    rx_strm::stream_rx_data_nsamps(usrp, buffer_sz, &data_buffer.front(), 
-                                       "sc16", "sc16");
+    rx_strm::stream_rx_data_nsamps(usrp, 
+                                   buffer_sz, 
+                                   &data_buffer.front(), 
+                                   sett::rx_stream_cpu_fmt, 
+                                   sett::rx_stream_wire_fmt);
     std::cout << "Stop Streaming Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 
     //Analyze the raw data
-    std::cout << "Analyzing Raw Data..." << std::endl;
     float buff_mem = sizeof(RX_DTYPE) * buffer_sz;//bytes 
-    //print stats about size of data buffer
-    std::cout << "\tCollected " << stream_time << "s of raw data at fs = "
+    std::cout << "Analyzing Raw Data..." << std::endl;
+    std::cout << "\tCollected " << sett::rx_stream_time << "s of raw data at fs = "
               << usrp->get_rx_rate() << std::endl;
     std::cout << "\tBuffer length: " << buffer_sz << std::endl;
     std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-    //save data to file (optional)
-    std::string data_file_path = ""; 
-#ifdef SAVE_DATA
-    std::cout << "\tSaving Raw data to bin file\n";
-    data_file_path = "./raw_data.bin"; 
-    util::save_complex_vec_to_file_bin(data_buffer, data_file_path);
-#endif
+    util::save_and_plot_data(data_buffer,          //data to save and plot
+                             sett::raw_data_path,  //path to save data to 
+                             sett::save_raw_data,  //true = save the data, false = don't 
+                             sett::plot_raw_data,  //true = plot the data, false = don't (can only plot if the data was saved)
+                             usrp->get_rx_rate()); //need the sample rate for the plot to display time on x-axis
+
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
-    int16_t threshold = 200;
-    float save_time = 0.02;//20ms 
     int offset_time = 0*usrp->get_rx_rate();
     std::cout << "\tTakeing the magnitude..." << std::endl;
     std::vector<SAMP_DTYPE> mag_data = proc::calc_mag(data_buffer);
     buff_mem = sizeof(SAMP_DTYPE) * mag_data.size();//bytes 
     std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-    //save data to file (optional)
-//#ifdef SAVE_DATA
-//    std::cout << "\tSaving Mag data to txt file...\n";
-//    data_file_path = "./mag_data.txt"; 
-//    util::save_float_vec_to_file(mag_data, data_file_path);
-//#endif
     std::cout << "\tDoing threshold detection..." << std::endl;
-    int start_idx = proc::detect_threshold(mag_data, threshold, offset_time);
+    int start_idx = proc::detect_threshold(mag_data, sett::proc_threshold, sett::proc_offset_samples);
     if (start_idx < 0)
     {
         this->peak_timestamp_.push_back(0.0); 
@@ -217,18 +202,17 @@ void Client::start_streaming()
     {
         this->peak_timestamp_.push_back(start_idx / usrp->get_rx_rate());  
         std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
-        int k = int(save_time * usrp->get_rx_rate());
-        //save the pulse into a vector
-        this->raw_wave_form_ = util::get_subvec(data_buffer, start_idx, k);
-        buff_mem = sizeof(RX_DTYPE) * this->raw_wave_form_.size();//bytes 
+        int k = int(sett::proc_pulse_save_time * usrp->get_rx_rate());
+        this->pulse_data_ = util::get_subvec(data_buffer, start_idx, k);
+        buff_mem = sizeof(RX_DTYPE) * this->pulse_data_.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-        std::cout << "\tPulse Data size: " << this->raw_wave_form_.size() << std::endl;
+        std::cout << "\tPulse Data size: " << this->pulse_data_.size() << std::endl;
         //save data to file
-#ifdef SAVE_DATA_PULSE
-        std::cout << "\tSaving Pulse data to txt file\n";
-        data_file_path = "./pulse_data.bin"; 
-        util::save_complex_vec_to_file_bin(this->raw_wave_form_, data_file_path);
-#endif
+        util::save_and_plot_data(this->pulse_data_,     //data to save and plot                                        
+                                 sett::pulse_data_path, //path to save data to 
+                                 sett::save_pulse_data, //true = save the data, false = don't 
+                                 sett::plot_pulse_data, //true = plot the data, false = don't (can only plot if the da
+                                 usrp->get_rx_rate());  //need the sample rate for the plot to display time on x-axis
     }
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
@@ -242,14 +226,6 @@ void Client::start_streaming()
     }
     
     std::cout << "Streaming Done!" << std::endl;
-}
-
-void Client::analyze_raw_data(size_t buffer_sz)
-{
-}
-
-void Client::process_raw_data(std::vector<RX_DTYPE> data_buffer)
-{
 }
 
 
@@ -454,7 +430,7 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
         data.longitude = -11.2;
 
         data.altitude  =  10;
-        data.waveformSamples = std::move(raw_wave_form_);
+        data.waveformSamples = std::move(this->pulse_data_);
         header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
         std::cout << "Header packet length = " << header.packet_length << std::endl;
         
@@ -594,7 +570,7 @@ void Client::recv_to_file(void)
                     std::vector<double> ts = {1,2,3,4,5};
                     std::vector<std::complex<short>> wv = {1,2,3,4,5};
                     peak_timestamp_= std::move(ts);
-                    raw_wave_form_ = std::move(wv);
+                    this->pulse_data_= std::move(wv);
                 }
 
 #if 0

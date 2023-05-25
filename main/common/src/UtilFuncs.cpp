@@ -3,39 +3,39 @@
 
 namespace util{
 
-void save_complex_vec_to_file(const std::vector<RX_DTYPE> &vec, 
-                               const std::string filename)
-{
-     std::ofstream file(filename);
-    if (!file) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        return;
-    }
-
-    for (const auto& element : vec) {
-        file << element.real() << " " << element.imag() << " ";
-    }
-
-    file.close();
-    std::cout << "Vector saved to file: " << filename << std::endl;
-}
-
-void save_float_vec_to_file(const std::vector<float> &vec, 
-                               const std::string filename)
-{
-     std::ofstream file(filename);
-    if (!file) {
-        std::cerr << "Error opening file: " << filename << std::endl;
-        return;
-    }
-
-    for (const auto& element : vec) {
-        file << element << " ";
-    }
-
-    file.close();
-    std::cout << "Vector saved to file: " << filename << std::endl;
-}
+//void save_complex_vec_to_file(const std::vector<RX_DTYPE> &vec, 
+//                               const std::string filename)
+//{
+//     std::ofstream file(filename);
+//    if (!file) {
+//        std::cerr << "Error opening file: " << filename << std::endl;
+//        return;
+//    }
+//
+//    for (const auto& element : vec) {
+//        file << element.real() << " " << element.imag() << " ";
+//    }
+//
+//    file.close();
+//    std::cout << "Vector saved to file: " << filename << std::endl;
+//}
+//
+//void save_float_vec_to_file(const std::vector<float> &vec, 
+//                               const std::string filename)
+//{
+//     std::ofstream file(filename);
+//    if (!file) {
+//        std::cerr << "Error opening file: " << filename << std::endl;
+//        return;
+//    }
+//
+//    for (const auto& element : vec) {
+//        file << element << " ";
+//    }
+//
+//    file.close();
+//    std::cout << "Vector saved to file: " << filename << std::endl;
+//}
 
 void save_complex_vec_to_file_bin(const std::vector<RX_DTYPE>& vec, 
                                        const std::string filename)
@@ -83,6 +83,21 @@ void plot_with_python(std::string data_path, int fs)
     else
     {
         std::cout << "\t\tPython Script Failed..." << std::endl;
+    }
+}
+
+void save_and_plot_data(std::vector<RX_DTYPE> data, std::string file_path, 
+                        bool save_data, bool plot_data, double fs)
+{
+    if(save_data)
+    {
+        std::cout << "\tSaving Pulse data to txt file\n";
+        save_complex_vec_to_file_bin(data, file_path);
+        if(plot_data)
+        {
+            std::cout << "\tPlotting Data with python script\n";
+            plot_with_python(file_path, fs);
+        }
     }
 }
 

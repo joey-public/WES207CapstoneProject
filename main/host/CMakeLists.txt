@@ -57,6 +57,7 @@ add_executable(host
         ${CMAKE_SOURCE_DIR}/src/dsp/UsrpInitFuncs.cpp
         ${CMAKE_SOURCE_DIR}/src/dsp/TestNoNet.cpp
         ${CMAKE_SOURCE_DIR}/../common/src/UtilFuncs.cpp
+        ${CMAKE_SOURCE_DIR}/../common/src/Settings.cpp
         ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")

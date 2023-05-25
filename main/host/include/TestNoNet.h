@@ -10,4 +10,6 @@
 
 #include "Tests.h"
 
+#include "Settings.h"
+
 void test();

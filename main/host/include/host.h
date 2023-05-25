@@ -9,7 +9,18 @@
 #include "UsrpInitilizer.h"
 #include <atomic>
 
+#include <boost/asio/ip/tcp.hpp>
+#include <fstream>
+#include <istream>
+#include "PacketUtils.h"
+
+#include "debug.h"
+
+#include "UsrpRxStreamFuncs.h"
+#include "UtilFuncs.h"
+#include "ProcessingFuncs.h"
 #include "TypeDefs.h"
+#include "Settings.h"
 
 class Client 
 {
@@ -32,9 +43,6 @@ public:
 private:
     void control_command_handler();
     void dsp_handler();
-    
-    void analyze_raw_data(size_t buffer_sz);
-    void process_raw_data(std::vector<RX_DTYPE> data_buffer);
 
     boost::asio::io_context& io_context_;
     boost::asio::ip::tcp::socket socket_;
@@ -48,9 +56,10 @@ private:
     std::condition_variable conditionVariable_host; //to block thread and wait for event.
     std::mutex mutex_host;
     UsrpInitilizer* usrp_handler = NULL;
+
     void recv_to_file(void);
     std::vector<double> peak_timestamp_;
-    std::vector<RX_DTYPE> raw_wave_form_;
+    std::vector<RX_DTYPE> pulse_data_;
     uint64_t stream_seq_id;
     uint64_t stream_pkt_id;
     void send_dsp_data();
