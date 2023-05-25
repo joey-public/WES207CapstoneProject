@@ -518,6 +518,7 @@ void Server::send_receive_sequentially(std::string& command)
         std::cout << "\tSaving Pulse data to txt file\n";
         //std::string data_file_path = "./pulse_data.txt"; 
         //util::save_complex_vec_to_file(dataPacket.waveformSamples, data_file_path);
+        sett::update_settings_from_file();
         util::save_and_plot_data(dataPacket.waveformSamples, 
                                  sett::pulse_data_path, 
                                  sett::save_pulse_data, 

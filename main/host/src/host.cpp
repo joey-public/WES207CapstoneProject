@@ -8,6 +8,7 @@
 #include "UtilFuncs.h"
 #include "ProcessingFuncs.h"
 #include "TypeDefs.h"
+#include "Settings.h"
 
 #include "debug.h"
 
@@ -75,6 +76,8 @@ void Client::configure_usrp()
       
     size_t channel          = 0;
     double setup_time       = 1;
+    
+    sett::update_settings_from_file();
 
     if(NULL == usrp_handler && false == is_configured_)
     {
