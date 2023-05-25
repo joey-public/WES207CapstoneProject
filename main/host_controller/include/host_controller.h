@@ -31,6 +31,7 @@ public:
     void run_io_context();
     void send_control_command(uint64_t client_id, std::string command);
     void broadcast_control_command(std::string command);
+    void broadcast_control_command_async(std::string command);
     void disconnect_client(uint64_t client_id);
     std::vector<uint64_t> get_connected_clients();
     void run_localization();
@@ -40,6 +41,7 @@ public:
     void read_from_client();
     bool is_data_read_complete();
     void send_receive_sequentially(std::string& command);
+    void print_async_broadcast_completed();
 
 private:
     void handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,const boost::system::error_code& error);
