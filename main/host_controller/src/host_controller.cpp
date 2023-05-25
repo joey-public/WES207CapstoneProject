@@ -1,7 +1,6 @@
 #include "host_controller.h"
 
-
-const uint32_t Server:: num_max_supported_client = 1;
+const uint32_t Server:: num_max_supported_client = 2;
 
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
@@ -95,6 +94,59 @@ void Server::broadcast_control_command(std::string command)
         }
     }
 }
+
+void Server::broadcast_control_command_async(std::string command)
+{
+    std::cout << "Broadcasting control command asynchronously: " << command << " to all clients" << std::endl;
+
+    // Create a shared_ptr to the command string to ensure its availability during the asynchronous operation
+    auto commandPtr = std::make_shared<std::string>(command + "\n");
+
+    // Keep track of the number of asynchronous writes completed
+    std::size_t completedWrites = 0;
+
+    std::mutex completedWritesMutex;  // Mutex to protect the completedWrites counter
+
+    // Define the callback function to be called when each asynchronous write operation completes
+    auto writeHandler = [this, commandPtr, &completedWrites, &completedWritesMutex](const boost::system::error_code& error, std::size_t bytesTransferred) 
+    {
+        if (error) 
+        {
+            std::cerr << "Error while sending command to client: " << error.message() << std::endl;
+            // Handle the error, such as closing the socket or taking appropriate action
+        }
+
+        // Check if all asynchronous writes have completed
+        std::lock_guard<std::mutex> lock(completedWritesMutex);
+        ++completedWrites;
+        
+        if (completedWrites == sockets_.size()) 
+        {
+            // All writes completed, do any necessary post-processing
+            std::cout << "Async broadcast completed" << std::endl;
+        }
+    };
+
+    // Iterate over the sockets using asynchronous writes
+    for (const auto& pair : sockets_) 
+    {
+        try 
+        {
+            boost::asio::async_write(*pair.second, boost::asio::buffer(*commandPtr), writeHandler);
+        } 
+        catch (const boost::system::system_error& e) 
+        {
+            std::cerr << "Error while initiating write to client: " << e.what() << std::endl;
+            // Handle the error, such as closing the socket or taking appropriate action
+        }
+    }
+}
+
+void Server::print_async_broadcast_completed()
+{
+    std::cout << "Async broadcast completed" << std::endl;
+}
+
 
 void Server::disconnect_client(uint64_t client_id)
 {

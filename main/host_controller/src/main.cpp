@@ -25,17 +25,17 @@ int main(int argc, char* argv[])
             io_context.run();
         });
 
-         #if 0
+ #if 0
         /** Would be useful when all clients are sending data*/
         std::vector<std::thread> threads;
         for (std::size_t i = 0; i < std::thread::hardware_concurrency(); ++i)
         {
             threads.emplace_back([&io_context]() 
-            { io_context.run(); 
-            
+            { 
+              io_context.run(); 
             });
         }
-        #endif
+#endif
 
         // Wait for all clients to connect
         while (server.get_connected_clients().size() < Server::num_max_supported_client)
@@ -53,9 +53,10 @@ int main(int argc, char* argv[])
         {
             if (command == "config" || command == "sync" 
             || command == "stream" || command == "stop"
-            || command == "time")
+            || command == "time" || command == "dummy")
             {
-                server.broadcast_control_command(command);
+                //server.broadcast_control_command(command);
+                server.broadcast_control_command_async(command);
             }
             else if(command == "send")
             {
@@ -93,6 +94,12 @@ int main(int argc, char* argv[])
 
           //Join iocontect
           io_thread.join();
+#if 0
+          for (auto& thread : threads) 
+          {
+            thread.join();
+          }
+#endif
 
     } 
     catch (std::exception& e) 
