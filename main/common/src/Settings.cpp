@@ -2,10 +2,13 @@
 namespace sett{
     //usrp settings
     std::string usrp_ip = "192.168.11.2";
-    std::string usrp_subdev = "A:0";
+    //std::string usrp_subdev = "A:0";
+    std::string usrp_subdev = "A:A"; //B200 expects A:A
     std::string usrp_ant = "TX/RX";
-    std::string usrp_clock_ref = "external";
-    std::string usrp_time_ref = "_external_";
+    //std::string usrp_clock_ref = "external";
+    //std::string usrp_time_ref = "_external_";
+    std::string usrp_clock_ref = "gpsdo";//For internal GPSDO
+    std::string usrp_time_ref = "gpsdo";//For internal GPSDO
     double usrp_sample_rate = 25e6;
     double usrp_center_freq =173935300;
     double usrp_gain = 0;
