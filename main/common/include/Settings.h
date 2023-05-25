@@ -2,6 +2,8 @@
 #define SETTINGS_H
 
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "TypeDefs.h"
 
 namespace sett{
@@ -33,6 +35,8 @@ namespace sett{
     extern bool save_pulse_data;
     extern bool plot_pulse_data;
     extern std::string pulse_data_path;
+
+    void update_settings_from_file();
 }//end namespace
  
 #endif

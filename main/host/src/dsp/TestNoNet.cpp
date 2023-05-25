@@ -9,6 +9,7 @@ void test()
     run_all_tests();
 #endif
     //Setup the USRP device
+    sett::update_settings_from_file();
     uhd::usrp::multi_usrp::sptr usrp = init::gen_usrp(sett::usrp_ip, 
                                                       sett::usrp_subdev, 
                                                       sett::usrp_ant, 
@@ -18,6 +19,7 @@ void test()
                                                       sett::usrp_center_freq, 
                                                       sett::usrp_gain, 
                                                       sett::usrp_bw);
+
 
     //Stream the data 
     size_t buffer_sz = sett::rx_stream_time * usrp->get_rx_rate();
