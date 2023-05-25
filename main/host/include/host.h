@@ -34,9 +34,14 @@ public:
     void stop();
     void configure_usrp();
     void synchronize_pps();
+    void synchronize_gps();
     void start_streaming();
+    void show_time();
 
     void stop_streaming();
+    void parse_gpgga(std::string& gps_msg);
+    void parse_gprmc(std::string& gps_msg);
+
     std::thread control_command_thread_;
     std::thread dsp_thread_;
 
@@ -50,6 +55,9 @@ private:
     std::string server_port_;
     std::string usrp_ip_;
     int client_id_;
+    double longitude_;
+    double latitude_;
+    double altitude_;
     bool is_configured_;
     bool is_synchronized_;
     std::atomic<bool> is_streaming_;
