@@ -36,6 +36,7 @@ public:
     void synchronize_pps();
     void synchronize_gps();
     void start_streaming();
+    void show_time();
 
     void stop_streaming();
     void parse_gpgga(std::string& gps_msg);

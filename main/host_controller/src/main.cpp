@@ -52,7 +52,8 @@ int main(int argc, char* argv[])
         while (false == is_receive_active.load() && std::getline(std::cin, command)) 
         {
             if (command == "config" || command == "sync" 
-            || command == "stream" || command == "stop")
+            || command == "stream" || command == "stop"
+            || command == "time")
             {
                 server.broadcast_control_command(command);
             }

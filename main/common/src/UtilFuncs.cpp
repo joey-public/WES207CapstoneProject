@@ -71,7 +71,7 @@ std::vector<RX_DTYPE> get_subvec(const std::vector<RX_DTYPE>&in_vec,
 void plot_with_python(std::string data_path, int fs)
 {
     std::string python_file = "../../scripts/plot_complex_bin_data.py";
-    std::string command = "python " + python_file + 
+    std::string command = "python3 " + python_file + 
                           " " + data_path + 
                           " " + std::to_string(fs) + " &";
     int result = system(command.c_str());
