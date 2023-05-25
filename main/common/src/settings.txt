@@ -1,8 +1,8 @@
 192.168.11.2
-A:0
+A:A
 TX/RX
-external
-_external_
+gpsdo
+gpsdo
 25000000
 173935300
 0
