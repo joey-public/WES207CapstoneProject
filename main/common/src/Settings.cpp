@@ -33,7 +33,7 @@ namespace sett
 
     void update_settings_from_file()
     {
-        std::ifstream file("settings.txt");
+        std::ifstream file("../../settings.txt");
         if (!file.is_open()) 
         {
             std::cout << "Failed to open file." << std::endl;

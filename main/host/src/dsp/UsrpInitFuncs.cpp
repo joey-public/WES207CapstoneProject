@@ -7,7 +7,7 @@ uhd::usrp::multi_usrp::sptr gen_usrp(std::string ip, std::string sd, std::string
 {
     std::cout << "Configureing USRP" << std::endl;
     std::string args = "addr="+ip;
-    uhd::device_addr_t dev_addr = uhd::device_addr_t(args);
+    uhd::device_addr_t dev_addr = uhd::device_addr_t();
     std::cout << "-------------------------------------" << std::endl;
     std::cout << dev_addr.to_pp_string() << std::endl;
     std::cout << "-------------------------------------" << std::endl;

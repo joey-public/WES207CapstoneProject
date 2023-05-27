@@ -89,7 +89,7 @@ std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector)
         magnitudes.push_back(magnitude);
         sum += magnitude;
     }
-    divide_vec_by_scalar(magnitudes, sum);
+    divide_vec_by_scalar(magnitudes, sum/magnitudes.size());
     return magnitudes;
 }
 

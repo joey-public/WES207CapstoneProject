@@ -23,8 +23,7 @@ def read_bin_data(file_name, downsampling_factor):
     return reshaped_data
 
 def plot_complex_data(file_name, fs):
-    #    downsampling_factor = calc_downsampling_factor(file_name)
-    downsampling_factor = 2;
+    downsampling_factor = calc_downsampling_factor(file_name)
     data = read_bin_data(file_name, downsampling_factor)
     real_part = data[:, 0]
     imaginary_part = data[:, 1]
