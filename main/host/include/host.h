@@ -74,6 +74,7 @@ private:
     void send_dsp_data_sequentially();
     std::atomic<bool> is_send_command_active;
     void create_header_data_packet(std::vector<char>& header_packet, std::vector<char>& data_packet);
+    double rx_stream_start_time_; 
 };
 
 #endif//__HOST_H__

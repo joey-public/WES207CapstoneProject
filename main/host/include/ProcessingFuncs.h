@@ -27,5 +27,9 @@ std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const st
 
 void fir(int16_t *coeffs, RX_DTYPE *input, RX_DTYPE *output, int length, int filterLength);
 
+void divide_vec_by_scalar(std::vector<SAMP_DTYPE>& vec, double scalar); 
+
+std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector); 
+
 }//end namespace
 #endif

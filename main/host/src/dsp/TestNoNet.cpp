@@ -57,7 +57,7 @@ void test()
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
     std::cout << "\tTaking the magnitude..." << std::endl;
-    std::vector<SAMP_DTYPE> mag_data = proc::calc_mag(data_buffer);
+    std::vector<SAMP_DTYPE> mag_data = proc::calc_norm_mag(data_buffer);
     buff_mem = sizeof(SAMP_DTYPE) * mag_data.size();//bytes 
     std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
     std::cout << "\tDoing threshold detection..." << std::endl;

@@ -9,7 +9,7 @@ def calc_downsampling_factor(file_path):
     threshold = 5*1024*1024; #5Mb
     downsampling_factor = (file_size // (threshold)) + 1
     downsampling_factor = max(downsampling_factor, 1)
-#    print('File Size is {}, data in plots will be downsampled by {}'.format(file_size, downsampling_factor))
+    print('File Size is {}, data in plots will be downsampled by {}'.format(file_size, downsampling_factor))
     return downsampling_factor
 
 def read_bin_data(file_name, downsampling_factor):
@@ -23,7 +23,8 @@ def read_bin_data(file_name, downsampling_factor):
     return reshaped_data
 
 def plot_complex_data(file_name, fs):
-    downsampling_factor = calc_downsampling_factor(file_name)
+    #    downsampling_factor = calc_downsampling_factor(file_name)
+    downsampling_factor = 2;
     data = read_bin_data(file_name, downsampling_factor)
     real_part = data[:, 0]
     imaginary_part = data[:, 1]

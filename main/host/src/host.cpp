@@ -312,11 +312,12 @@ void Client::start_streaming()
     //Stream the raw data
     std::cout << "-------------------------------------" << std::endl;
     std::cout << "Start Streaming Data..." << std::endl;
-    rx_strm::stream_rx_data_nsamps(usrp, 
-                                   buffer_sz, 
-                                   &data_buffer.front(), 
-                                   sett::rx_stream_cpu_fmt, 
-                                   sett::rx_stream_wire_fmt);
+    uhd::time_spec_t stream_start_time = rx_strm::stream_rx_data_nsamps(usrp, 
+                                                                       buffer_sz, 
+                                                                       &data_buffer.front(), 
+                                                                       sett::rx_stream_cpu_fmt, 
+                                                                       sett::rx_stream_wire_fmt);
+    this->rx_stream_start_time_ = stream_start_time.get_real_secs();
     std::cout << "Stop Streaming Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 
@@ -352,10 +353,16 @@ void Client::start_streaming()
     }
     else
     {
-        this->peak_timestamp_.push_back(start_idx / usrp->get_rx_rate());  
+        this->peak_timestamp_.push_back(start_idx / usrp->get_rx_rate() 
+                                         + this->rx_stream_start_time_);  
         std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
+        std::cout << "\tPulse timestamp: " << this->peak_timestamp_[0] << std::endl;
         int k = int(sett::proc_pulse_save_time * usrp->get_rx_rate());
-        this->pulse_data_ = util::get_subvec(data_buffer, start_idx, k);
+        int c = int(k/ 4);
+        std::cout << "\tstart index: " << start_idx << std::endl;
+        std::cout << "\tend_idx: " << k << std::endl;
+        std::cout << "\tc = " << c << std::endl;
+        this->pulse_data_ = util::get_subvec(data_buffer, start_idx-c, k+c);
         buff_mem = sizeof(RX_DTYPE) * this->pulse_data_.size();//bytes 
         std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
         std::cout << "\tPulse Data size: " << this->pulse_data_.size() << std::endl;

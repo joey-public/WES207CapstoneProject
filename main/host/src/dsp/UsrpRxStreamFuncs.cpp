@@ -28,7 +28,7 @@ uhd::stream_cmd_t _gen_stream_cmd_gpsdo(size_t buff_sz)
     return _gen_stream_cmd_no_time_source(buff_sz);
 }
 
-void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp, 
+uhd::time_spec_t stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp, 
                         size_t buff_sz, RX_DTYPE* recv_ptr, 
                         std::string cpu_fmt, std::string wire_fmt)
 {
@@ -59,9 +59,16 @@ void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp,
     size_t num_recv_samps = 0;
     size_t rx_sample_count = 0;
     size_t total_samples = 0;
+    int err = 0;
 
     //configure stream cmds based on uhd time_source
-    uhd::time_spec_t start_time = usrp->get_time_now().get_real_secs() + 0.2; 
+//     uhd::time_spec_t start_time = usrp->get_time_now().get_real_secs() + 0.2; 
+    uhd::time_spec_t start_time = usrp->get_mboard_sensor("gps_time").to_real() + 1.0; 
+    std::cout << "\tTelling stream to start at: " << 
+                 "\n\t\tReal Secs: " << start_time.get_real_secs() <<
+                 "\n\t\tFull Secs: " << start_time.get_full_secs() <<
+                 "\n\t\tFrac Secs: " << start_time.get_frac_secs() << std::endl;
+
     uhd::stream_cmd_t stream_cmd = _gen_stream_cmd_external_time_source(buff_sz, start_time);
     rx_stream->issue_stream_cmd(stream_cmd);
     
@@ -69,10 +76,29 @@ void stream_rx_data_nsamps(uhd::usrp::multi_usrp::sptr usrp,
     while(total_samples < buff_sz)
     { 
         num_recv_samps = rx_stream->recv(recv_ptr, recv_pkt_sz, md, stream_timeout, true);
-        _handle_recv_errors(md, rx_sample_count);
+        err = _handle_recv_errors(md, rx_sample_count);
+        if (err==1)
+        {
+            std::cout << "\tTry streaming again later..";
+            return uhd::time_spec_t();
+;
+        }
         rx_sample_count += num_recv_samps;        
         recv_ptr += num_recv_samps; 
         total_samples += num_recv_samps;
+    }
+    if (md.has_time_spec)
+    {
+        std::cout << "\tStream Actually Started at: " << 
+                 "\n\t\tReal Secs: " << md.time_spec.get_real_secs() <<
+                 "\n\t\tFull Secs: " << md.time_spec.get_full_secs() <<
+                 "\n\t\tFrac Secs: " << md.time_spec.get_frac_secs() << std::endl;
+        return md.time_spec;
+    }
+    else
+    {
+        std::cout << "No md timespec found returning 0";
+        return uhd::time_spec_t();
     }
 }
 
@@ -181,7 +207,8 @@ int _handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count)
             if (samp_count == 0) {break;}
             std::cout << "RX Count: " << std::to_string(samp_count) << std::endl;
             std::cout << m.to_pp_string() << std::endl;
-            throw std::runtime_error("ERROR_CODE_TIMEOUT");
+            return 1;
+//            throw std::runtime_error("ERROR_CODE_TIMEOUT");
             break;
         case uhd::rx_metadata_t::ERROR_CODE_OVERFLOW:
             std::cout << m.to_pp_string() << std::endl;

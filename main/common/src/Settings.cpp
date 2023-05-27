@@ -12,14 +12,14 @@ namespace sett
     std::string usrp_time_ref = "gpsdo";//For internal GPSDO
     double usrp_sample_rate = 25e6;
     double usrp_center_freq =173935300;
-    double usrp_gain = 0;
+    double usrp_gain = 10;
     double usrp_bw = 10e6;
     //stream settings 
     int rx_stream_time = 1; //seconds  
     std::string rx_stream_cpu_fmt = "sc16";
     std::string rx_stream_wire_fmt = "sc16";
     //processing settings
-    SAMP_DTYPE proc_threshold = 1500;
+    SAMP_DTYPE proc_threshold = 800;
     int proc_offset_samples = 1000;//only start looking for threshold after 1000 samples
     float proc_pulse_save_time = 0.02;
 

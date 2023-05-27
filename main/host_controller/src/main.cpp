@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
             || command == "stream" || command == "stop"
             || command == "time" || command == "dummy")
             {
-                //server.broadcast_control_command(command);
-                server.broadcast_control_command_async(command);
+                server.broadcast_control_command(command);
+                //server.broadcast_control_command_async(command);
             }
             else if(command == "send")
             {

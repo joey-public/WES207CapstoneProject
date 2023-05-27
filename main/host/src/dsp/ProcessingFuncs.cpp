@@ -60,9 +60,6 @@ std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const st
     return result;
 }
 
-// ----------------------------------------------
-// Run a FIR filter on the given input data
-// ----------------------------------------------
 void fir(int16_t *coeffs, RX_DTYPE *input, RX_DTYPE *output, int length, int filterLength)
 // ----------------------------------------------
 {
@@ -74,6 +71,26 @@ void fir(int16_t *coeffs, RX_DTYPE *input, RX_DTYPE *output, int length, int fil
         }
         output[i] = result;
     }
+}
+
+void divide_vec_by_scalar(std::vector<SAMP_DTYPE>& vec, double scalar) 
+{
+    std::transform(vec.begin(), vec.end(), vec.begin(),
+                   [scalar](SAMP_DTYPE element) { return element / scalar; });
+}
+
+std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector) 
+{
+    std::vector<SAMP_DTYPE> magnitudes;
+    double sum = 0;
+    magnitudes.reserve(complexVector.size());
+    for (const auto& complexNumber : complexVector) {
+        SAMP_DTYPE magnitude = std::abs(complexNumber);
+        magnitudes.push_back(magnitude);
+        sum += magnitude;
+    }
+    divide_vec_by_scalar(magnitudes, sum);
+    return magnitudes;
 }
 
 }//end namespace
