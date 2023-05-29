@@ -8,3 +8,4 @@ data/
 *.bin
 *.o
 .old/
+.DS_Store
