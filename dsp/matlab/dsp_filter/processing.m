@@ -40,7 +40,7 @@ ylabel("Amplitude")
 
 subplot(4,1,4)
 fftlen = 2*length(template_signal);
-plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(template_signal)/length(template_signal),fftlen)))), 'linewidth',2)
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(template_signal)/sum(template_signal),fftlen)))), 'linewidth',2)
 grid on
 title("FFT of Template signal")
 xlabel('Frequency fo/fs', 'fontsize',14)
@@ -74,7 +74,7 @@ ylabel("Amplitude")
 
 subplot(4,1,4)
 fftlen = 2*length(complex_pulse);
-plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(complex_pulse)/length(complex_pulse),fftlen)))), 'linewidth',2)
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(complex_pulse)/sum(complex_pulse),fftlen)))), 'linewidth',2)
 grid on
 title("FFT of Complex signal at 10m 20dB")
 xlabel('Frequency fo/fs', 'fontsize',14)
@@ -83,70 +83,70 @@ xlim([-fs/2 fs/2])
 
 % Do match filter with complex pulse
 %Filp the template signal for match filtering.
-template = fliplr(template_signal); % Matched filter template
-filtered_signal = filter(template,1, complex_pulse);
+%template = fliplr(template_signal); % Matched filter template
+%filtered_signal = filter(template,1, complex_pulse);
 %filtered_signal = c_corr(template_signal, complex_pulse);
 
 
-figure;
-subplot(4, 1, 1);
-plot(1:length(filtered_signal), abs(filtered_signal));
-grid on
-xlabel('Filtered Sample Index');
-ylabel('Magnitude');
-title('Magnitude of Filtered Data 10m 20dB');
-
-subplot(4, 1, 2);
-plot(1:length(filtered_signal), angle(filtered_signal));
-%plot(xval, angle(complex_data2(xval)));
-grid on
-xlabel('Sample Index');
-ylabel('Phase (radians)');
-title('Phase of Filtered Data');
-
-subplot(4,1,3)
-plot(1:length(filtered_signal), real(filtered_signal));
-hold on
-grid on
-plot(1:length(filtered_signal), imag(filtered_signal));
-xlabel("Time n")
-ylabel("Amplitude")
-
-subplot(4,1,4)
-fftlen = 2*length(filtered_signal);
-plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(filtered_signal)/length(filtered_signal),fftlen)))), 'linewidth',2)
-grid on
-title("FFT of Complex signal at 10m 20dB")
-xlabel('Frequency fo/fs', 'fontsize',14)
-ylabel('Log Magnitude','fontsize',14 )
-xlim([-fs/2 fs/2])
-
-%noise and match filter
-%filtered_noise = filter(template,1,noise_data);
-filtered_noise = c_corr(template_signal, noise_data);
-
-figure;
-subplot(3, 1, 1);
-plot(1:length(filtered_noise), abs(filtered_noise));
-grid on
-xlabel('Filtered Noise Index');
-ylabel('Magnitude');
-title('Magnitude of Filtered Noise 10m 20dB');
-
-subplot(3, 1, 2);
-plot(1:length(filtered_noise), angle(filtered_noise));
-grid on
-xlabel('Sample Index');
-ylabel('Phase (radians)');
-title('Phase of Filtered Data');
-
-subplot(3,1,3)
-plot(1:length(filtered_noise), real(filtered_noise));
-hold on
-grid on
-plot(1:length(filtered_noise), imag(filtered_noise));
-xlabel("Time n")
-ylabel("Amplitude")
+% figure;
+% subplot(4, 1, 1);
+% plot(1:length(filtered_signal), abs(filtered_signal));
+% grid on
+% xlabel('Filtered Sample Index');
+% ylabel('Magnitude');
+% title('Magnitude of Filtered Data 10m 20dB');
+% 
+% subplot(4, 1, 2);
+% plot(1:length(filtered_signal), angle(filtered_signal));
+% %plot(xval, angle(complex_data2(xval)));
+% grid on
+% xlabel('Sample Index');
+% ylabel('Phase (radians)');
+% title('Phase of Filtered Data');
+% 
+% subplot(4,1,3)
+% plot(1:length(filtered_signal), real(filtered_signal));
+% hold on
+% grid on
+% plot(1:length(filtered_signal), imag(filtered_signal));
+% xlabel("Time n")
+% ylabel("Amplitude")
+% 
+% subplot(4,1,4)
+% fftlen = 2*length(filtered_signal);
+% plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(filtered_signal)/sum(filtered_signal),fftlen)))), 'linewidth',2)
+% grid on
+% title("FFT of Complex signal at 10m 20dB")
+% xlabel('Frequency fo/fs', 'fontsize',14)
+% ylabel('Log Magnitude','fontsize',14 )
+% xlim([-fs/2 fs/2])
+% 
+% %noise and match filter
+% %filtered_noise = filter(template,1,noise_data);
+% filtered_noise = c_corr(template_signal, noise_data);
+% 
+% figure;
+% subplot(3, 1, 1);
+% plot(1:length(filtered_noise), abs(filtered_noise));
+% grid on
+% xlabel('Filtered Noise Index');
+% ylabel('Magnitude');
+% title('Magnitude of Filtered Noise 10m 20dB');
+% 
+% subplot(3, 1, 2);
+% plot(1:length(filtered_noise), angle(filtered_noise));
+% grid on
+% xlabel('Sample Index');
+% ylabel('Phase (radians)');
+% title('Phase of Filtered Data');
+% 
+% subplot(3,1,3)
+% plot(1:length(filtered_noise), real(filtered_noise));
+% hold on
+% grid on
+% plot(1:length(filtered_noise), imag(filtered_noise));
+% xlabel("Time n")
+% ylabel("Amplitude")
 
 %filter design
 %HW_2 Problem 1 a
@@ -201,7 +201,7 @@ ylabel("Amplitude")
 
 subplot(4,1,4)
 fftlen = 2*length(sinc_filtered_pulse);
-plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(sinc_filtered_pulse)/length(sinc_filtered_pulse),fftlen)))), 'linewidth',2)
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(sinc_filtered_pulse)/sum(sinc_filtered_pulse),fftlen)))), 'linewidth',2)
 grid on
 title("FFT of Complex signal at 10m 20dB")
 xlabel('Frequency fo/fs', 'fontsize',14)
@@ -210,7 +210,7 @@ xlim([-fs/2 fs/2])
 
 figure;
 fftlen = 2*length(h1);
-plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(h1)/length(h1),fftlen)))), 'linewidth',2)
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(h1)/sum(h1),fftlen)))), 'linewidth',2)
 grid on
 title("FFT of Sinc filter with Kaise window")
 xlabel('Frequency fo/fs', 'fontsize',14)
@@ -221,12 +221,77 @@ xlim([-fs/2 fs/2])
 filtered_noise = filter(h1,1, noise_data);
 figure;
 fftlen = 2*length(filtered_noise);
-plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(filtered_noise)/length(filtered_noise),fftlen)))), 'linewidth',2)
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(filtered_noise)/sum(filtered_noise),fftlen)))), 'linewidth',2)
 grid on
 title("FFT of Noise signal at 10m 20dB")
 xlabel('Frequency fo/fs', 'fontsize',14)
 ylabel('Log Magnitude','fontsize',14 )
 xlim([-fs/2 fs/2])
+
+%Using FIRPM 
+fs = 25e6;
+AdB = 60;
+f1 = 0;
+f2 = 5e6;
+N = round(fs/(f2-f1) * AdB/22);
+
+h=firpm(N-1, [0 f1 f2 fs/2]/(fs/2), [1 1 0 0], [1 10]);
+
+figure;
+fftlen = 1000;
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(h/sum(h),fftlen)))), 'linewidth',2)
+grid on
+title("FFT of Firpm filter")
+xlabel('Frequency fo/fs', 'fontsize',14)
+ylabel('Log Magnitude','fontsize',14 )
+xlim([-fs/2 fs/2])
+
+firpm_filtered_pulse = filter(h,1, complex_pulse);
+
+figure;
+subplot(4, 1, 1);
+plot(1:length(firpm_filtered_pulse), abs(firpm_filtered_pulse));
+grid on
+xlabel('Complex Sample Index with FIRPM filter');
+ylabel('Magnitude');
+title('Magnitude of Complex Data 10m 20dB');
+
+subplot(4, 1, 2);
+plot(1:length(firpm_filtered_pulse), angle(firpm_filtered_pulse));
+%plot(xval, angle(complex_data2(xval)));
+grid on
+xlabel('Sample Index');
+ylabel('Phase (radians)');
+title('Phase of Complex Data');
+
+subplot(4,1,3)
+plot(1:length(firpm_filtered_pulse), real(firpm_filtered_pulse));
+hold on
+grid on
+plot(1:length(firpm_filtered_pulse), imag(firpm_filtered_pulse));
+xlabel("Time n")
+ylabel("Amplitude")
+
+subplot(4,1,4)
+fftlen = 2*length(firpm_filtered_pulse);
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(firpm_filtered_pulse)/sum(firpm_filtered_pulse),fftlen)))), 'linewidth',2)
+grid on
+title("FFT of Complex signal at 10m 20dB with FIRPM")
+xlabel('Frequency fo/fs', 'fontsize',14)
+ylabel('Log Magnitude','fontsize',14 )
+xlim([-fs/2 fs/2])
+
+%Plot of noise with filtered data.
+filtered_noise = filter(h,1, noise_data);
+figure;
+fftlen = 2*length(filtered_noise);
+plot((-0.5:1/fftlen:0.5-1/fftlen)*fs,20*log10(fftshift(abs(fft(real(filtered_noise)/sum(filtered_noise),fftlen)))), 'linewidth',2)
+grid on
+title("FFT of Noise signal at 10m 20dB with FIRPM")
+xlabel('Frequency fo/fs', 'fontsize',14)
+ylabel('Log Magnitude','fontsize',14 )
+xlim([-fs/2 fs/2])
+
 
 
 %cross corelation function
