@@ -337,44 +337,19 @@ void Client::start_streaming()
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     
-//    //Process the data
-//    std::cout << "Start Processing Data..." << std::endl;
-//    int offset_time = 0*usrp->get_rx_rate();
-//    std::cout << "\tTakeing the magnitude..." << std::endl;
-//    std::vector<SAMP_DTYPE> mag_data = proc::calc_mag(data_buffer);
-//    buff_mem = sizeof(SAMP_DTYPE) * mag_data.size();//bytes 
-//    std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-//    std::cout << "\tDoing threshold detection..." << std::endl;
-//    int start_idx = proc::detect_threshold(mag_data, sett::proc_threshold, sett::proc_offset_samples);
-//    if (start_idx < 0)
-//    {
-//        this->peak_timestamp_.push_back(0.0); 
-//        std::cout << "\tNo Peak Detected...\n";
-//    }
-//    else
-//    {
-//        this->peak_timestamp_.push_back(start_idx / usrp->get_rx_rate() 
-//                                         + this->rx_stream_start_time_);  
-//        std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
-//        std::cout << "\tPulse timestamp: " << this->peak_timestamp_[0] << std::endl;
-//        int k = int(sett::proc_pulse_save_time * usrp->get_rx_rate());
-//        int c = int(k/ 4);
-//        std::cout << "\tstart index: " << start_idx << std::endl;
-//        std::cout << "\tend_idx: " << k << std::endl;
-//        std::cout << "\tc = " << c << std::endl;
-//        this->pulse_data_ = util::get_subvec(data_buffer, start_idx-c, k+c);
-//        buff_mem = sizeof(RX_DTYPE) * this->pulse_data_.size();//bytes 
-//        std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-//        std::cout << "\tPulse Data size: " << this->pulse_data_.size() << std::endl;
-//        //save data to file
-//        util::save_and_plot_data(this->pulse_data_,     //data to save and plot                                        
-//                                 sett::pulse_data_path, //path to save data to 
-//                                 sett::save_pulse_data, //true = save the data, false = don't 
-//                                 sett::plot_pulse_data, //true = plot the data, false = don't (can only plot if the da
-//                                 usrp->get_rx_rate());  //need the sample rate for the plot to display time on x-axis
-//    }
-//    std::cout << "Stop Processing Data..." << std::endl;
-//    std::cout << "-------------------------------------" << std::endl;
+    //Process the data
+    std::cout << "Start Processing Data..." << std::endl;
+    proc::dsp_struct dsp_result = proc::process_data(data_buffer, usrp->get_rx_rate());
+    this->peak_timestamp_.push_back(dsp_result.start_idx / usrp->get_rx_rate()
+                                   + this->rx_stream_start_time_);
+    this->pulse_data_ = dsp_result.pulse_data;
+    util::save_and_plot_data(this->pulse_data_,     //data to save and plot                                        
+                             sett::pulse_data_path, //path to save data to 
+                             sett::save_pulse_data, //true = save the data, false = don't 
+                             sett::plot_pulse_data, //true = plot the data, false = don't (can only plot if the da
+                             usrp->get_rx_rate());  //need the sample rate for the plot to display time on x-axis
+    std::cout << "Stop Processing Data..." << std::endl;
+    std::cout << "-------------------------------------" << std::endl;
     
 #if 0
     //once streaming is done, set the condition variable, so that dsp thread for can start sending samples.
