@@ -44,7 +44,20 @@ void save_complex_vec_to_file_bin(const std::vector<RX_DTYPE>& vec,
     file.open(filename.c_str(), std::ofstream::binary);
     for (int i = 0; i < vec.size(); i++) 
     {
-        file.write((const char*) &vec[i], 2 * sizeof(int16_t));
+        file.write((const char*) &vec[i], 2 * sizeof(SAMP_DTYPE));
+    }
+    file.close();
+    std::cout << "Vector saved to file: " << filename << std::endl;
+}
+
+void save_complex_float_vec_to_file_bin(const std::vector<std::complex<float>>& vec, 
+                                       const std::string filename)
+{
+    std::ofstream file;
+    file.open(filename.c_str(), std::ofstream::binary);
+    for (int i = 0; i < vec.size(); i++) 
+    {
+        file.write((const char*) &vec[i], 2 * sizeof(float));
     }
     file.close();
     std::cout << "Vector saved to file: " << filename << std::endl;

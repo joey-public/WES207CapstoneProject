@@ -3,19 +3,57 @@
 namespace proc {
 
 
-void process_data(std::vector<RX_DTYPE> &data_buff)
+dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
 {
     std::cout << "Processing Data..." << std::endl;
-    std::vector<SAMP_DTYPE> data_mag = calc_mag(data_buff);
-    SAMP_DTYPE thresh = 100;
-    //int n = detect_threshold(data_mag, thresh);
-    //optional perform xcorr here
-    std::cout << "Done Processing Data..." << std::endl;
+    std::cout << "\tRaw Data Size "<< data_buff.size() << std::endl;
+    dsp_struct result;
+    std::vector<std::complex<float>> proc_data(data_buff.size()+sett::fir_coeffs.size());
+    std::cout << "\tFiltering raw data..." << std::endl;
+    float max_val = fir_complex(sett::fir_coeffs, data_buff, proc_data);
+    std::cout << "\tFiltering done...max val = " << max_val << std::endl;
+    std::cout << "\tNormalizing proc_data by " << max_val << std::endl;
+    divide_vec_by_scalar(proc_data, max_val);
+    std::cout << "\tTaking Magnitude" << std::endl;
+    std::cout << "\tProc Data Size "<< proc_data.size() << std::endl;
+    std::vector<float> mag_data = calc_mag(proc_data);
+    util::save_complex_float_vec_to_file_bin(proc_data, "./proc_data.bin");
+    proc_data.clear();
+    std::cout << "\tDetecting Threshold (thr = "<< sett::proc_threshold <<
+                 ")... "<< std::endl;
+    int threshold_idx = detect_threshold(mag_data, sett::proc_threshold,
+                                             sett::proc_offset_samples);
+    mag_data.clear();
+
+    if (threshold_idx == -1)
+    {
+        std::cout << "\tNO THRESHOLD DETECTED" << std::endl;
+        result.start_idx = 0;
+        result.end_idx = fs * 30e3;
+    }
+    else
+    {
+        double thresh_time = threshold_idx / fs;
+        double start_time = thresh_time - 5e-3;
+        double end_time = start_time + 30e-3;
+        result.start_idx = int(start_time * fs);
+        result.end_idx = int(end_time * fs);
+        std::cout << "\tThreshold found at idx = " << threshold_idx << 
+                     ", t = "<< thresh_time << std::endl;
+        std::cout << "\tpulse starts at idx = " << result.start_idx << 
+                     ", t = " << start_time << std::endl;
+        std::cout << "\tpulse ends at idx = " << result.end_idx << 
+                     ", t = " << end_time << std::endl;
+        std::cout << "Done Processing Data..." << std::endl;
+    }
+    result.pulse_data = util::get_subvec(data_buff, result.start_idx, result.end_idx); 
+    return result;
+
 }
 
-std::vector<SAMP_DTYPE> calc_mag(std::vector<RX_DTYPE>& complexVector) 
+std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector) 
 {
-    std::vector<SAMP_DTYPE> magnitudes;
+    std::vector<float> magnitudes;
     magnitudes.reserve(complexVector.size());
     for (const auto& complexNumber : complexVector) {
         SAMP_DTYPE magnitude = std::abs(complexNumber);
@@ -35,7 +73,7 @@ std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector)
     return phases;
 }
 
-int detect_threshold(std::vector<SAMP_DTYPE>& values, SAMP_DTYPE threshold, int offset) 
+int detect_threshold(std::vector<float>& values, float threshold, int offset) 
 {
     for (std::size_t i = offset; i < values.size(); ++i) {
         if (values[i] > threshold) {
@@ -60,37 +98,48 @@ std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const st
     return result;
 }
 
-void fir(int16_t *coeffs, RX_DTYPE *input, RX_DTYPE *output, int length, int filterLength)
-// ----------------------------------------------
+float fir_complex(std::vector<float>& coeffs, std::vector<RX_DTYPE>& input, 
+                 std::vector<std::complex<float>>& output)
 {
-    std::cout << "Naive FIR\n";
-    for(int i=0; i<length-filterLength; i++){//for size of signal
-        RX_DTYPE result = 0.0;
-        for(int j=0; j<filterLength; j++){//for each filter coef 
-            result += input[i+j] * coeffs[j]; 
+    int input_len = input.size();
+    int filter_len = coeffs.size();
+    float max_val = 0.0;
+    for(int i=0; i < input_len - filter_len; i++){//for size of signal
+        float real_result = 0.0;
+        float imag_result = 0.0;
+        for(int j=0; j<filter_len; j++){//for each filter coef 
+            real_result += std::real(input[i+j]) * coeffs[j]; 
+            imag_result += std::imag(input[i+j]) * coeffs[j]; 
         }
-        output[i] = result;
+        output[i] = std::complex<float>(real_result, imag_result);
+        if (std::abs(output[i]) > max_val)
+        {
+            max_val = std::abs(output[i]);
+        }
     }
+    return max_val;
 }
 
-void divide_vec_by_scalar(std::vector<SAMP_DTYPE>& vec, double scalar) 
+
+
+void divide_vec_by_scalar(std::vector<std::complex<float>>& vec, float scalar) 
 {
     std::transform(vec.begin(), vec.end(), vec.begin(),
-                   [scalar](SAMP_DTYPE element) { return element / scalar; });
+                   [scalar](std::complex<float> element) { return element / scalar; });
 }
 
-std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector) 
-{
-    std::vector<SAMP_DTYPE> magnitudes;
-    double sum = 0;
-    magnitudes.reserve(complexVector.size());
-    for (const auto& complexNumber : complexVector) {
-        SAMP_DTYPE magnitude = std::abs(complexNumber);
-        magnitudes.push_back(magnitude);
-        sum += magnitude;
-    }
-    divide_vec_by_scalar(magnitudes, sum/magnitudes.size());
-    return magnitudes;
-}
+//std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector) 
+//{
+//    std::vector<SAMP_DTYPE> magnitudes;
+//    double sum = 0;
+//    magnitudes.reserve(complexVector.size());
+//    for (const auto& complexNumber : complexVector) {
+//        SAMP_DTYPE magnitude = std::abs(complexNumber);
+//        magnitudes.push_back(magnitude);
+//        sum += magnitude;
+//    }
+//    divide_vec_by_scalar(magnitudes, sum/magnitudes.size());
+//    return magnitudes;
+//}
 
-}//end namespace
+}//end namespace 

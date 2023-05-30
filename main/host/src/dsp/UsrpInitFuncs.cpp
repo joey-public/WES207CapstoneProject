@@ -12,7 +12,8 @@ uhd::usrp::multi_usrp::sptr gen_usrp(std::string ip, std::string sd, std::string
     std::cout << dev_addr.to_pp_string() << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     //create usrp object
-    uhd::usrp::multi_usrp::sptr usrp = uhd::usrp::multi_usrp::make(args);
+    std::string b200_args;
+    uhd::usrp::multi_usrp::sptr usrp = uhd::usrp::multi_usrp::make(b200_args);
 
     //configure usrp
     usrp->set_rx_subdev_spec(sd);

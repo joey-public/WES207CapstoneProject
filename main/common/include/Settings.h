@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 #include "TypeDefs.h"
 
 namespace sett{
@@ -24,7 +25,7 @@ namespace sett{
     extern std::string rx_stream_wire_fmt;
 
     //processing settings
-    extern SAMP_DTYPE proc_threshold;
+    extern float proc_threshold;
     extern int proc_offset_samples;//only start looking for threshold after 1000 samples
     extern float proc_pulse_save_time;
 
@@ -35,6 +36,8 @@ namespace sett{
     extern bool save_pulse_data;
     extern bool plot_pulse_data;
     extern std::string pulse_data_path;
+
+    extern std::vector<float> fir_coeffs;
 
     void update_settings_from_file();
 }//end namespace

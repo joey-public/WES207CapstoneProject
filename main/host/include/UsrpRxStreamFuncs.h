@@ -27,5 +27,9 @@ void stream_rx_data_continuous(uhd::usrp::multi_usrp::sptr usrp);
 
 int _handle_recv_errors(uhd::rx_metadata_t m, size_t samp_count);
 
+void synchronize_gps(uhd::usrp::multi_usrp::sptr usrp);
+void parse_gpgga(std::string& gps_msg);
+void parse_gprmc(std::string& gps_msg);
+
 }
 #endif
