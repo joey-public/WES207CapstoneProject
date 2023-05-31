@@ -130,7 +130,7 @@ int main()
     }
 
     // Load the FIR filter coefficients from the "filter_taps_sinc_kaiser.mat" file
-    matfp = Mat_Open("firpm_coefficient.mat", MAT_ACC_RDONLY);
+    matfp = Mat_Open("fir_coefficients_32.mat", MAT_ACC_RDONLY);
     if(NULL == matfp)
     {
         std::cout << "Could not open file filter taps" << std::endl;
