@@ -121,7 +121,6 @@ float fir_complex(std::vector<float>& coeffs, std::vector<RX_DTYPE>& input,
 }
 
 
-
 void divide_vec_by_scalar(std::vector<std::complex<float>>& vec, float scalar) 
 {
     std::transform(vec.begin(), vec.end(), vec.begin(),
