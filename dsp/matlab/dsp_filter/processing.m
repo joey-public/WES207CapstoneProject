@@ -11,7 +11,8 @@ noise = load("noise.mat");
 template_signal = temp.template_signal;
 complex_pulse = pulse.complex_data_pulse;
 noise_data = noise.noise_data;
-
+real_data = real(complex_pulse);
+imag_data = imag(complex_pulse);
 % Perform further processing or analysis on complex_data
 % For example, you can plot the magnitude and phase:
 figure;
@@ -232,7 +233,7 @@ xlim([-fs/2 fs/2])
 fs = 25e6;
 AdB = 60;
 f1 = 0;
-f2 = 5e6;
+f2 = 2.1e6;
 N = round(fs/(f2-f1) * AdB/22);
 
 h=firpm(N-1, [0 f1 f2 fs/2]/(fs/2), [1 1 0 0], [1 10]);
