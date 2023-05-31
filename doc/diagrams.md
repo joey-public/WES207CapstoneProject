@@ -8,6 +8,19 @@ E --> |Yes| F(Dump 20 ms Data to memory)
 E --> |No| A
 ```
 
+## Updated DSP Flowchart
+
+```mermaid
+graph LR
+A(RX Data Stream)-->B(FIR LPF)
+B --> C(Normalize)
+C --> D(Take Magnitude)
+D --> E(Threshold Detection)
+E --> F{Above Th ?}
+F --> |Yes| G(Dump 30 ms Data to memory)
+F --> |No| A
+```
+
 ```mermaid
 graph LR
 A(RX Stream 3s)-->B(Take Magnitide)
