@@ -4,7 +4,7 @@
 #include <crossCorrelation.h>
 #include <complex>
 #include <fftw3.h>
-
+#include "TypeDefs.h"
 
 
 int CrossCorrelate(std::vector<RX_DTYPE>& s1, std::vector<RX_DTYPE>& s2, int length)

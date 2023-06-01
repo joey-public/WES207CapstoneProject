@@ -5,18 +5,18 @@
 #include <vector>
 #include <complex>
 #include <fftw3.h>
+#include "TypeDefs.h"
 
-typedef int16_t SAMP_DTYPE;
-typedef std::complex<SAMP_DTYPE> RX_DTYPE;
-//typedef compint64_t std::complex<int64_t>;
-
-// Finds the index of the smallest element in an array
-//  @param        *array The array to search
-//  @param   numElements The number of elements to search
-//  @return              The index of the minimum value in the array
+// Finds the index of the largest value of the cross correlation between the 2 input vectors
+//  @param	s1 first signal
+//  @param   	s2 second signal
+//  @return	The lag of the maximum cross correlation magnitude
 int CrossCorrelate(std::vector<RX_DTYPE>& s1, std::vector<RX_DTYPE>& s2, int length);
 
+// Finds the index of the largest element in an array
+//  @param        *array The array to search
+//  @param   numElements The number of elements to search
+//  @return              The index of the maximum value in the array
 int maximumIndex(std::complex<double>* array,int numElements);
-//int maximumIndex(fftw_complex* array,int numElements);
 
 #endif

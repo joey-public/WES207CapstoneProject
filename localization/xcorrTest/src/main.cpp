@@ -27,11 +27,17 @@ int main() {
     	s1.at(k) = s1real.at(k)+oneEye*s1imag.at(k);
     	s2.at(k) = s2real.at(k)+oneEye*s2imag.at(k);
     }
-
     
+    std::vector<double> TDoAs = CalculateTDoAs(s1,s2,s1,s2,847,856,847,856,fs);
+    
+    std::cout << "Starting localization. Inputs: " << std::endl << TDoAs.at(0) << std::endl << TDoAs.at(1) << std::endl << TDoAs.at(2) << std::endl << TDoAs.at(3) << std::endl;
+    Vector3d loc_est;
+    loc_est = Localization_4Receivers_2D(TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3));
+
+    /*
     int thresholdSampleDifference; //index offset of data files
 
-    int xCorrSampleDifference = CrossCorrelate(s1,s2,6);
+    int xCorrSampleDifference = CrossCorrelate(s1,s2,length);
     
     //Calculate TDoAs from offset and cross correlation
     
@@ -53,6 +59,7 @@ int main() {
     
     Vector3d loc_est;
     loc_est = Localization_4Receivers_2D(t1,t2,t3,t4);
+    */
     
     std::cout << "Location estimate:" << std::endl << loc_est << std::endl;
 
