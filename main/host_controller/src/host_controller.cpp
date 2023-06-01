@@ -1,6 +1,6 @@
 #include "host_controller.h"
 
-const uint32_t Server:: num_max_supported_client = 1;
+uint32_t Server:: num_max_supported_client = hostc_max_clients;
 
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "TypeDefs.h"
 
 namespace sett{
@@ -39,6 +40,9 @@ namespace sett{
 
     extern std::vector<float> fir_coeffs;
 
+    extern uint32_t hostc_max_clients; 
+
+    bool _stob(std::string bool_string);
     void update_settings_from_file();
 }//end namespace
  

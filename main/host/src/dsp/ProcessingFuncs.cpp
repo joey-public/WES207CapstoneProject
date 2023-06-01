@@ -47,6 +47,8 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
         std::cout << "Done Processing Data..." << std::endl;
     }
     result.pulse_data = util::get_subvec(data_buff, result.start_idx, result.end_idx); 
+    float pulse_mem = sizeof(float) * result.pulse_data.size();
+    std::cout << "\tPulse Data takes: " << pulse_mem / 1e6 << " Mb of memory" << std::endl;
     return result;
 }
 
