@@ -21,7 +21,7 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
     proc_data.clear();
     std::cout << "\tDetecting Threshold (thr = "<< sett::proc_threshold <<
                  ")... "<< std::endl;
-    int threshold_idx = detect_threshold(mag_data, sett::proc_threshold,
+    uint64_t threshold_idx = detect_threshold(mag_data, sett::proc_threshold,
                                              sett::proc_offset_samples);
     mag_data.clear();
 
@@ -36,8 +36,8 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
         double thresh_time = threshold_idx / fs;
         double start_time = thresh_time - 5e-3;
         double end_time = start_time + 30e-3;
-        result.start_idx = int(start_time * fs);
-        result.end_idx = int(end_time * fs);
+        result.start_idx = uint64_t(start_time * fs);
+        result.end_idx = uint64_t(end_time * fs);
         std::cout << "\tThreshold found at idx = " << threshold_idx << 
                      ", t = "<< thresh_time << std::endl;
         std::cout << "\tpulse starts at idx = " << result.start_idx << 
@@ -63,9 +63,9 @@ std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector)
     return magnitudes;
 }
 
-std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector) 
+std::vector<float> calc_phase(std::vector<std::complex<float>>& complexVector) 
 {
-    std::vector<SAMP_DTYPE> phases;
+    std::vector<float> phases;
     phases.reserve(complexVector.size());
     for (const auto& complexNumber : complexVector) {
         SAMP_DTYPE phase = std::arg(complexNumber);
@@ -74,41 +74,27 @@ std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector)
     return phases;
 }
 
-int detect_threshold(std::vector<float>& values, float threshold, int offset) 
+uint64_t detect_threshold(std::vector<float>& values, float threshold, uint64_t offset) 
 {
     for (std::size_t i = offset; i < values.size(); ++i) {
         if (values[i] > threshold) {
-            return static_cast<int>(i);
+            return static_cast<uint64_t>(i);
         }
     }
     // Return -1 if no element is greater than the threshold
     return -1;
 }
 
-std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, const std::vector<RX_DTYPE>& signalB) 
-{
-    std::size_t resultSize = signalA.size() + signalB.size() - 1;
-    std::vector<RX_DTYPE> result(resultSize);
-
-    Eigen::Map<const Eigen::Matrix<RX_DTYPE, Eigen::Dynamic, 1>> eigenSignalA(signalA.data(), signalA.size());
-    Eigen::Map<const Eigen::Matrix<RX_DTYPE, Eigen::Dynamic, 1>> eigenSignalB(signalB.data(), signalB.size());
-    Eigen::Map<Eigen::Matrix<RX_DTYPE, Eigen::Dynamic, 1>> eigenResult(result.data(), resultSize);
-
-    eigenResult = eigenSignalA.reverse().asDiagonal() * eigenSignalB;
-
-    return result;
-}
-
 float fir_complex(std::vector<float>& coeffs, std::vector<RX_DTYPE>& input, 
                  std::vector<std::complex<float>>& output)
 {
-    int input_len = input.size();
-    int filter_len = coeffs.size();
+    size_t input_len = input.size();
+    size_t filter_len = coeffs.size();
     float max_val = 0.0;
-    for(int i=0; i < input_len - filter_len; i++){//for size of signal
+    for(uint64_t i=0; i < input_len - filter_len; i++){//for size of signal
         float real_result = 0.0;
         float imag_result = 0.0;
-        for(int j=0; j<filter_len; j++){//for each filter coef 
+        for(uint64_t j=0; j<filter_len; j++){//for each filter coef 
             real_result += std::real(input[i+j]) * coeffs[j]; 
             imag_result += std::imag(input[i+j]) * coeffs[j]; 
         }
@@ -128,18 +114,5 @@ void divide_vec_by_scalar(std::vector<std::complex<float>>& vec, float scalar)
                    [scalar](std::complex<float> element) { return element / scalar; });
 }
 
-//std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector) 
-//{
-//    std::vector<SAMP_DTYPE> magnitudes;
-//    double sum = 0;
-//    magnitudes.reserve(complexVector.size());
-//    for (const auto& complexNumber : complexVector) {
-//        SAMP_DTYPE magnitude = std::abs(complexNumber);
-//        magnitudes.push_back(magnitude);
-//        sum += magnitude;
-//    }
-//    divide_vec_by_scalar(magnitudes, sum/magnitudes.size());
-//    return magnitudes;
-//}
 
 }//end namespace 

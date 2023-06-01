@@ -16,12 +16,10 @@
 namespace proc{
 
 struct dsp_struct {
-    int start_idx;
-    int end_idx;
+    uint64_t start_idx;
+    uint64_t end_idx;
     std::vector<RX_DTYPE> pulse_data;
 };
-
-void stream_and_process_data(uhd::usrp::multi_usrp::sptr usrp);
 
 
 //void process_data(std::vector<RX_DTYPE> &data_buff);
@@ -30,20 +28,17 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs);
 //std::vector<SAMP_DTYPE> calc_mag(std::vector<RX_DTYPE>& complexVector);
 std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector); 
 
-std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector);
+//std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector);
+std::vector<float> calc_phase(std::vector<std::complex<float>>& complexVector);
 
 //int detect_threshold(std::vector<SAMP_DTYPE>& values, SAMP_DTYPE threshold, int offset);
-int detect_threshold(std::vector<float>& values, float threshold, int offset);
-
-std::vector<RX_DTYPE> xcorr_eigen(const std::vector<RX_DTYPE>& signalA, 
-                                  const std::vector<RX_DTYPE>& signalB);
+uint64_t detect_threshold(std::vector<float>& values, float threshold, uint64_t offset);
 
 float fir_complex(std::vector<float>& coeffs, std::vector<RX_DTYPE>& input, 
                  std::vector<std::complex<float>>& output);
 
 void divide_vec_by_scalar(std::vector<std::complex<float>>& vec, float scalar); 
 
-std::vector<SAMP_DTYPE> calc_norm_mag(std::vector<RX_DTYPE>& complexVector); 
 
 }//end namespace
 #endif
