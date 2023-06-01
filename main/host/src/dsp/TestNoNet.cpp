@@ -51,52 +51,18 @@ void test()
               << usrp->get_rx_rate() << std::endl;
     std::cout << "\tBuffer length: " << buffer_sz << std::endl;
     std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-    if(sett::save_raw_data)
-    {
-        std::cout << "\tSaving Raw data to txt file\n";
-        util::save_complex_vec_to_file_bin(data_buffer, sett::raw_data_path);
-        if(sett::plot_raw_data)
-        {
-            std::cout << "\tPlotting Data with python script\n";
-            util::plot_with_python(sett::raw_data_path, usrp->get_rx_rate());
-        }
-    }
+    util::save_complex_vec_to_file_bin(data_buffer, 
+                                       sett::raw_data_path, 
+                                       sett::save_raw_data);
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
    
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
     proc::dsp_struct dsp_result = proc::process_data(data_buffer, usrp->get_rx_rate());
-//    std::cout << "\tTaking the magnitude..." << std::endl;
-//    std::vector<SAMP_DTYPE> mag_data = proc::calc_norm_mag(data_buffer);
-//    buff_mem = sizeof(SAMP_DTYPE) * mag_data.size();//bytes 
-//    std::cout << "\tMag Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-//    std::cout << "\tDoing threshold detection..." << std::endl;
-//    int start_idx = proc::detect_threshold(mag_data, 
-//                                           sett::proc_threshold, 
-//                                           sett::proc_offset_samples);
-//    if (start_idx < 0) 
-//    {
-//        std::cout << "\tNo Peak Detected...\n";
-//    }
-//    else //pulse was detected
-//    {
-//        std::cout << "\tPulse Detected starting at index: " << start_idx << std::endl;
-//        int end_idx = int(sett::proc_pulse_save_time * usrp->get_rx_rate());
-//        std::vector<RX_DTYPE> pulse_data = util::get_subvec(data_buffer, start_idx, end_idx);
-//        buff_mem = sizeof(RX_DTYPE) * pulse_data.size();//bytes 
-//        std::cout << "\tPulse Data takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-//        if(sett::save_pulse_data)
-//        {
-//            std::cout << "\tSaving Pulse data to txt file\n";
-//            util::save_complex_vec_to_file_bin(pulse_data, sett::pulse_data_path);
-//            if(sett::plot_pulse_data)
-//            {
-//                std::cout << "\tPlotting Data with python script\n";
-//                util::plot_with_python(sett::pulse_data_path, usrp->get_rx_rate());
-//            }
-//        }
-//    }
+    util::save_complex_vec_to_file_bin(dsp_result.pulse_data, 
+                                       sett::pulse_data_path, 
+                                       sett::save_pulse_data);
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 

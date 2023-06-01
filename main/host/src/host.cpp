@@ -328,11 +328,9 @@ void Client::start_streaming()
               << usrp->get_rx_rate() << std::endl;
     std::cout << "\tBuffer length: " << buffer_sz << std::endl;
     std::cout << "\tBuffer takes: " << buff_mem / 1e6 << " Mb of memory" << std::endl;
-    util::save_and_plot_data(data_buffer,          //data to save and plot
-                             sett::raw_data_path,  //path to save data to 
-                             sett::save_raw_data,  //true = save the data, false = don't 
-                             sett::plot_raw_data,  //true = plot the data, false = don't (can only plot if the data was saved)
-                             usrp->get_rx_rate()); //need the sample rate for the plot to display time on x-axis
+    util::save_complex_vec_to_file_bin(data_buffer, 
+                                       sett::raw_data_path, 
+                                       sett::save_raw_data);
 
     std::cout << "Done Analyzing Raw Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
@@ -344,11 +342,9 @@ void Client::start_streaming()
     this->peak_timestamp_.push_back(dsp_result.start_idx / usrp->get_rx_rate()
                                    + this->rx_stream_start_time_);
     this->pulse_data_ = dsp_result.pulse_data;
-    util::save_and_plot_data(this->pulse_data_,     //data to save and plot                                        
-                             sett::pulse_data_path, //path to save data to 
-                             sett::save_pulse_data, //true = save the data, false = don't 
-                             sett::plot_pulse_data, //true = plot the data, false = don't (can only plot if the da
-                             usrp->get_rx_rate());  //need the sample rate for the plot to display time on x-axis
+    util::save_complex_vec_to_file_bin(this->pulse_data_, 
+                                       sett::pulse_data_path, 
+                                       sett::save_pulse_data);
     std::cout << "Stop Processing Data..." << std::endl;
     std::cout << "-------------------------------------" << std::endl;
     
@@ -554,7 +550,8 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
         //create header
         HeaderPacket header;
         header.packet_id = stream_pkt_id;
-        header.pkt_ts = 0;//TODO: Insert timestamp if required
+        //header.pkt_ts = 0;//TODO: Insert timestamp if required
+        header.pkt_ts = this->pulse_start_idx_;
         header.packet_type = PACKET_TYPE_DATA;
         std::cout << "\tHeader packet created" << std::endl;
 

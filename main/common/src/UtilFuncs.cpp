@@ -3,43 +3,11 @@
 
 namespace util{
 
-//void save_complex_vec_to_file(const std::vector<RX_DTYPE> &vec, 
-//                               const std::string filename)
-//{
-//     std::ofstream file(filename);
-//    if (!file) {
-//        std::cerr << "Error opening file: " << filename << std::endl;
-//        return;
-//    }
-//
-//    for (const auto& element : vec) {
-//        file << element.real() << " " << element.imag() << " ";
-//    }
-//
-//    file.close();
-//    std::cout << "Vector saved to file: " << filename << std::endl;
-//}
-//
-//void save_float_vec_to_file(const std::vector<float> &vec, 
-//                               const std::string filename)
-//{
-//     std::ofstream file(filename);
-//    if (!file) {
-//        std::cerr << "Error opening file: " << filename << std::endl;
-//        return;
-//    }
-//
-//    for (const auto& element : vec) {
-//        file << element << " ";
-//    }
-//
-//    file.close();
-//    std::cout << "Vector saved to file: " << filename << std::endl;
-//}
-
 void save_complex_vec_to_file_bin(const std::vector<RX_DTYPE>& vec, 
-                                       const std::string filename)
+                                       const std::string filename, 
+                                       bool should_save)
 {
+    if(!should_save) {return;}
     std::ofstream file;
     file.open(filename.c_str(), std::ofstream::binary);
     for (int i = 0; i < vec.size(); i++) 
@@ -51,8 +19,10 @@ void save_complex_vec_to_file_bin(const std::vector<RX_DTYPE>& vec,
 }
 
 void save_complex_float_vec_to_file_bin(const std::vector<std::complex<float>>& vec, 
-                                       const std::string filename)
+                                       const std::string filename,
+                                       bool should_save)
 {
+    if(!should_save) {return;}
     std::ofstream file;
     file.open(filename.c_str(), std::ofstream::binary);
     for (int i = 0; i < vec.size(); i++) 
@@ -81,58 +51,4 @@ std::vector<RX_DTYPE> get_subvec(const std::vector<RX_DTYPE>&in_vec,
     return out_vec;
 }
 
-void plot_with_python(std::string data_path, int fs)
-{
-    std::string python_file = "../../scripts/plot_complex_bin_data.py";
-    std::string command = "python " + python_file + 
-                          " " + data_path + 
-                          " " + std::to_string(fs) + " &";
-    int result = system(command.c_str());
-    if(result == 0)
-    {
-        //std::cout << "Saved Plot to: " << image_path << std::endl;
-        std::cout << "\t\tPython Script Ran Sucessfully..." << std::endl;
-    }
-    else
-    {
-        std::cout << "\t\tPython Script Failed..." << std::endl;
-    }
-}
-
-void save_and_plot_data(std::vector<RX_DTYPE> data, std::string file_path, 
-                        bool save_data, bool plot_data, double fs)
-{
-    if(save_data)
-    {
-        std::cout << "\tSaving Pulse data to txt file\n";
-        save_complex_vec_to_file_bin(data, file_path);
-        if(plot_data)
-        {
-            std::cout << "\tPlotting Data with python script\n";
-            plot_with_python(file_path, fs);
-        }
-    }
-}
-
 }//end namespace
- 
-
-//
-//
-//template<typename T>
-//void save_vec_to_file(const std::vector<T> &data_buff, 
-//                               const std::string& filepath)
-//{
-//    std::ofstream outFile;
-//    outFile.open(filepath.c_str());
-//    
-//    if (outFile.is_open()) {
-//        for (const auto& item : data_buff) 
-//        {
-//            std::string val = std::to_string(item);
-//            outFile << val << ", ";
-//        }
-//    
-//    outFile.close();
-//    }
-//}

@@ -1,6 +1,7 @@
 #include "host_controller.h"
 
-uint32_t Server:: num_max_supported_client = hostc_max_clients;
+//uint32_t Server:: num_max_supported_client = sett::hostc_max_clients;
+const uint32_t Server:: num_max_supported_client = 1;
 
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
@@ -513,17 +514,16 @@ void Server::send_receive_sequentially(std::string& command)
         std::cout << "\tlat: " << dataPacket.latitude << std::endl;
         std::cout << "\talt: " << dataPacket.altitude << std::endl;
         std::cout << "\tNum Time Stamps: " << dataPacket.numTimeSamples << std::endl;
+        std::cout << "\tpulse idx: " << header->pkt_ts << std::endl;
         std::cout << "\tpeak timestamps: " << dataPacket.peak_timestamps[0] << std::endl;
         std::cout << "\twaveform samples len: " << dataPacket.waveformSamples.size() << std::endl;
         std::cout << "\tSaving Pulse data to txt file\n";
         //std::string data_file_path = "./pulse_data.txt"; 
         //util::save_complex_vec_to_file(dataPacket.waveformSamples, data_file_path);
         sett::update_settings_from_file();
-        util::save_and_plot_data(dataPacket.waveformSamples, 
-                                 sett::pulse_data_path, 
-                                 sett::save_pulse_data, 
-                                 sett::plot_pulse_data, 
-                                 sett::usrp_sample_rate);
+        util::save_complex_vec_to_file_bin(dataPacket.waveformSamples, 
+                                           sett::pulse_data_path, 
+                                           sett::save_pulse_data);
     }
 
     start_localization_.store(true);
