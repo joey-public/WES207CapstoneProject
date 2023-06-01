@@ -75,6 +75,7 @@ private:
     std::atomic<bool> is_send_command_active;
     void create_header_data_packet(std::vector<char>& header_packet, std::vector<char>& data_packet);
     double rx_stream_start_time_; 
+    uint64_t pulse_start_idx_;
 };
 
 #endif//__HOST_H__

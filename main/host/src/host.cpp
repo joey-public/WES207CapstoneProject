@@ -340,6 +340,7 @@ void Client::start_streaming()
     //Process the data
     std::cout << "Start Processing Data..." << std::endl;
     proc::dsp_struct dsp_result = proc::process_data(data_buffer, usrp->get_rx_rate());
+    this->pulse_start_idx_ = dsp_result.start_idx;
     this->peak_timestamp_.push_back(dsp_result.start_idx / usrp->get_rx_rate()
                                    + this->rx_stream_start_time_);
     this->pulse_data_ = dsp_result.pulse_data;

@@ -48,7 +48,6 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
     }
     result.pulse_data = util::get_subvec(data_buff, result.start_idx, result.end_idx); 
     return result;
-
 }
 
 std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector) 
