@@ -14,7 +14,7 @@ cmake_minimum_required(VERSION 3.5.1)
 project(HOST_CONTROLLER CXX)
 
 ### Configure Compiler ########################################################
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
     set(CMAKE_EXE_LINKER_FLAGS "-lthr ${CMAKE_EXE_LINKER_FLAGS}")
@@ -63,7 +63,8 @@ add_executable(host_controller
         ${CMAKE_SOURCE_DIR}/src/localization.cpp
         ${CMAKE_SOURCE_DIR}/../common/src/UtilFuncs.cpp
         ${CMAKE_SOURCE_DIR}/../common/src/Settings.cpp
-        ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp)
+        ${CMAKE_SOURCE_DIR}/../common/src/PacketUtils.cpp
+        ${CMAKE_SOURCE_DIR}/../common/src/crossCorrelation.cpp)
 
 set(CMAKE_BUILD_TYPE "Release")
 message(STATUS "******************************************************************************")
@@ -73,7 +74,8 @@ message(STATUS "* exactly match what you require. Make sure to double-check comp
 message(STATUS "* linker flags to make sure your specific requirements are included.          ")
 message(STATUS "******************************************************************************")
 
-target_link_libraries (host_controller Eigen3::Eigen) 
+target_link_libraries (host_controller Eigen3::Eigen)
+target_link_libraries (host_controller fftw3) 
 
 # Shared library case: All we need to do is link against the library, and
 # anything else we need (in this case, some Boost libraries):

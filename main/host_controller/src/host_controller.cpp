@@ -187,6 +187,43 @@ void Server::run_localization()
 
         // Start processing the received data
         std::cout << "Localization Thread started processing:" <<std::endl;
+        
+        DataPacket p0 = client_buffers_[0].front();
+        DataPacket p1 = client_buffers_[1].front();
+        DataPacket p2 = client_buffers_[2].front();
+        DataPacket p3 = client_buffers_[3].front();
+        
+        std::vector<RX_DTYPE> s0 = p0.waveformSamples;
+        std::vector<RX_DTYPE> s1 = p1.waveformSamples;
+        std::vector<RX_DTYPE> s2 = p2.waveformSamples;
+        std::vector<RX_DTYPE> s3 = p3.waveformSamples;
+        
+        int i0 = (int) p0.peak_ts_idx.at(0);
+        int i1 = (int) p1.peak_ts_idx.at(0);
+        int i2 = (int) p2.peak_ts_idx.at(0);
+        int i3 = (int) p3.peak_ts_idx.at(0);
+        
+        client_buffers_[0].pop();
+        client_buffers_[1].pop();
+        client_buffers_[2].pop();
+        client_buffers_[3].pop();
+        
+        std::vector<double> TDoAs = CalculateTDoAs(s0,s1,s2,s3,i0,i1,i2,i3,25000000);
+    
+
+	//loc_est = Localization_4Receivers_2D(TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3));
+	
+	double tmax = std::max({TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3)});
+	double tmin = std::min({TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3)});
+        	
+        //if time difference is too large, something went wrong and data will be meaningless
+        //so only perform localization if time difference is small
+        if(tmax - tmin < 0.5)
+        {
+        	std::cout << "Starting localization. Inputs: " << std::endl << TDoAs.at(0) << std::endl << TDoAs.at(1) << std::endl << TDoAs.at(2) << std::endl << TDoAs.at(3) << std::endl;
+        	Eigen::Vector3d loc_est = Localization_4Receivers_2D(TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3));
+        	std::cout << "Estimated Location: " << loc_est << std::endl;
+        }
 
 	 //std::vector<double> ToAs =  localization_queue_[0].front();
 	 //localization_queue_[0].pop();
@@ -203,6 +240,7 @@ void Server::run_localization()
         */
         //END TEST DATA
         
+        /*
         std::vector<double> r0_ToAs = localization_queue_[0].front();
         std::vector<double> r1_ToAs = localization_queue_[1].front();
         
@@ -212,6 +250,9 @@ void Server::run_localization()
         
         localization_queue_[0].pop();
         localization_queue_[1].pop();
+        */
+        
+
         
         //check max num element of ToA.
         /*
@@ -227,10 +268,11 @@ void Server::run_localization()
         }
         */
         //loop and feed value to the localization function
+        /*
         for(int i = 0; i < r0_ToAs.size(); i++)
         {
         	double tmax = std::max({r0_ToAs.at(i), r1_ToAs.at(i), r2_ToAs.at(i), r3_ToAs.at(i)});
-        	double tmin = std::max({r0_ToAs.at(i), r1_ToAs.at(i), r2_ToAs.at(i), r3_ToAs.at(i)});
+        	double tmin = std::min({r0_ToAs.at(i), r1_ToAs.at(i), r2_ToAs.at(i), r3_ToAs.at(i)});
         	
         	//if time difference is too large, something went wrong and data will be meaningless
         	//so only perform localization if time difference is small
@@ -243,7 +285,7 @@ void Server::run_localization()
 
         }
         
-        
+        */
         //finished processing,
         start_localization_.store(false);
     }
