@@ -25,10 +25,12 @@ namespace sett
 
     //save and display settings
     bool save_raw_data = true;
-    bool plot_raw_data = false;
+//    bool plot_raw_data = false;
     std::string raw_data_path = "./raw_data.bin";
+    bool save_proc_data = true;
+    std::string proc_data_path = "./proc_data.bin";
     bool save_pulse_data = true;
-    bool plot_pulse_data = false;
+//    bool plot_pulse_data = false;
     std::string pulse_data_path = "./pulse_data.bin";
 
     //hostc settings
@@ -114,6 +116,10 @@ namespace sett
                 save_raw_data = _stob(value);
             else if (setting_name == "raw_data_path")
                 raw_data_path = value;
+            else if (setting_name == "save_proc_data")
+                save_proc_data = _stob(value);
+            else if (setting_name == "proc_data_path")
+                proc_data_path = value;
             else if (setting_name == "save_pulse_data")
                 save_pulse_data = _stob(value);
             else if (setting_name == "pulse_data_path")

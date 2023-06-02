@@ -17,7 +17,10 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
     std::cout << "\tTaking Magnitude" << std::endl;
     std::cout << "\tProc Data Size "<< proc_data.size() << std::endl;
     std::vector<float> mag_data = calc_mag(proc_data);
-    util::save_complex_float_vec_to_file_bin(proc_data, "./proc_data.bin", true);
+    
+    util::save_complex_float_vec_to_file_bin(proc_data, 
+                                             sett::proc_data_path,
+                                             sett::save_proc_data); 
     proc_data.clear();
     std::cout << "\tDetecting Threshold (thr = "<< sett::proc_threshold <<
                  ")... "<< std::endl;

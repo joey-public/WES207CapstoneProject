@@ -1,5 +1,11 @@
 # DSP source code
 
+THIS DIRECTORY IS OUT OF DATE! NONE OF THE CODE HERE IS USED IN THE MAIN APPLICATION. 
+
+THE CODE HAS ALL BEEN PORTED INTO THE MAIN APPLICATION SEE:
+
+`main/host/src/dsp` for the latests versions of all the code. 
+
 ## Build Instructions
 ```
 mkdir build
@@ -15,9 +21,6 @@ make
 
 Here I will test dsp algorithms using the UHD c++ api. 
 
-note I also use the gnuplot library to help me visualize what I am doing. 
-
-to install gnuplot use these commands:
 
 ## Host Application Flowchart
 

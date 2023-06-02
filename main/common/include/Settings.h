@@ -32,10 +32,12 @@ namespace sett{
 
     //save and display settings
     extern bool save_raw_data;
-    extern bool plot_raw_data;
+//    extern bool plot_raw_data;
     extern std::string raw_data_path;
+    extern bool save_proc_data;
+    extern std::string proc_data_path;
     extern bool save_pulse_data;
-    extern bool plot_pulse_data;
+//    extern bool plot_pulse_data;
     extern std::string pulse_data_path;
 
     extern std::vector<float> fir_coeffs;

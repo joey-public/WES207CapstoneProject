@@ -15,6 +15,8 @@ proc_offset_samples: 1000
 proc_pulse_save_time: 0.03
 save_raw_data: true
 raw_data_path: ./raw_data.bin
+save_proc_data: true
+proc_data_path: ./proc_data.bin
 save_pulse_data: true
 pulse_data_path: ./pulse_data.bin
 hostc_max_clients: 1
