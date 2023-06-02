@@ -17,11 +17,11 @@ host_controller: ./host_controller <server_IP> <PORT>
 After running the host controller you should wait for all the hosts to connect. Once all hosts connect to the system you should see the following statement in your terminal:
 
 Then you can move onto using the different host_controller commands to control the syte. The commands are run in the following order
-1) "config": configure USRP
-2) "sync": Sunchronizes to PPS, assumption, PPS is available
-3) "stream": streams and stores data to file
-4) "stop": Currently NOP
-5) "disconnect" : Close client.
+1) `config`: configure USRP
+2) `sync`: Sunchronizes to PPS, assumption, PPS is available
+3) `stream`: streams and stores data to file
+4) `stop`: Currently NOP
+5) `disconnect` : Close client.
 
 ## Host
 
