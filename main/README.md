@@ -1,11 +1,12 @@
 ## Building Process
 
 Go to BUILD folder:
-
+```
 cmake ../
 make clean
 make
 
+```
 ## Host Controller
 
 ### Usage
@@ -15,8 +16,6 @@ host_controller: ./host_controller <server_IP> <PORT>
 ### Host Controller Commands
 
 After running the host controller you should wait for all the hosts to connect. Once all hosts connect to the system you should see the following statement in your terminal:
-```
-```
 
 Then you can move onto using the different host_controller commands to control the syte. The commands are run in the following order
 1) "config": configure USRP
