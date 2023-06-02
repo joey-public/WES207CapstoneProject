@@ -9,3 +9,4 @@ data/
 *.o
 .old/
 .DS_Store
+.vscode/
