@@ -42,7 +42,7 @@ Before running the host you can configure the settings of the usrp and processin
 - `usrp` settings denote settings related to the configureation of the usrp device.  
 - `rx_stream` settings denote settings related to the streaming of data
 - `proc` settings denote settings related to the signal processing
-- 'hostc' settings denote settings related to the host controller, but right now there is just one setting and it is not functional. 
+- `hostc` settings denote settings related to the host controller, but right now there is just one setting and it is not functional. 
 - `save` settings are used to denote what data you want to save and to what path.  
 
 An example of settings.txt with all the supported settings is listed below. 
