@@ -11,7 +11,7 @@ make
 ### Usage
 
 ```
-host_controller: ./host_controller <server_IP> <PORT>
+./host_controller <server_IP> <PORT>
 ```
 
 ### Host Controller Commands
@@ -32,13 +32,13 @@ Then you can move onto using the different host_controller commands to control t
 For full system testing with several USRPs and a host controller use:
   
 ```
-host: ./host <server IP> <PORT> <USRP IP>
+./host <server IP> <PORT> <USRP IP>
 ```
   
 If you want to test with a single USRP without any networking. This can be useful for collecting data for postprocessing to test differnet dsp algorithms. 
 
 ```
-host: ./host
+./host
 ```
 ### Host Settings
 
