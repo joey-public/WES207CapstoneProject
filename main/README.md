@@ -82,9 +82,9 @@ hostc_max_clients: 1
 
 Be careful based on the sample rate and stream time you select the raw data and processing data can be very large.
 
-The raw data file saves the raw data directly collected fromt he usrp. size will be rx_stream_time * usrp_sample_rate * sizeof(rx_stream_wire_fmt). We recommend using sc16 which uses 32 bits to represent a single complex number. 
+The raw data file saves the raw data directly collected fromt he usrp. size will be $rx_stream_time \times usrp_sample_rate \times sizeof(rx_stream_wire_fmt)$. We recommend using sc16 which uses 32 bits to represent a single complex number. 
 
-The pulse data file size will be proc_pulse_save_time * usrp_sample_rate * sizeof(rx_stream_wire_fmt)
+The pulse data file size will be $proc_pulse_save_time \times usrp_sample_rate \times sizeof(rx_stream_wire_fmt)$
 
 The proc data stores the results of the signal processing done withing the cpp applicaiton. This can be usefule for verification when testing new/differnt dsp algorithms for pulse detection. The proc_data file size will be rx_stream_time * usrp_sample_rate * sizeof(std::complex<float>). Note is takes 64 bits for a complex float so the proc_data will be 2 times the size of the raw data if you decide to save it.  
 
