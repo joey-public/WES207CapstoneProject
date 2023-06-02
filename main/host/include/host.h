@@ -67,6 +67,7 @@ private:
 
     void recv_to_file(void);
     std::vector<double> peak_timestamp_;
+    std::vector<uint64_t> peak_ts_sid_;
     std::vector<RX_DTYPE> pulse_data_;
     uint64_t stream_seq_id;
     uint64_t stream_pkt_id;

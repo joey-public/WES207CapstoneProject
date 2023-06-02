@@ -177,6 +177,7 @@ void Server::handle_client_disconnection(uint64_t client_id)
     disconnect_client(client_id);
 }
 
+//Use client_buffers_ queue to fetch pulse data, time of Arrival timestamps, peak_time_sample_idx.
 void Server::run_localization()
 {
     while(true)
@@ -558,7 +559,13 @@ void Server::handleReceivedData(uint64_t client_id, const HeaderPacket& header, 
     {
         std::cout << "Waveform: " << wv <<std::endl;
     }
+
+    for(auto p_sid: packet.peak_ts_idx)
+    {
+         std::cout << "peak sample id: " << p_sid <<std::endl;
+    }
 #endif
+
     //std::lock_guard<boost::mutex> lock(client_buffers_mutex_);
     // Store the data packet in the client's buffer
     client_buffers_[client_id].push(packet);

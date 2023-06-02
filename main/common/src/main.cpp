@@ -25,8 +25,12 @@ int main()
     data.altitude  =  10;
     std::vector<std::complex<short>> wv = {1,2,3,4,5};
     data.waveformSamples = std::move(wv);    
+
+    std::vector<uint64_t> p_sid = {1234,23444554,23,23,4};
+    data.peak_ts_idx = std::move(p_sid);
     
-    header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
+    header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)
+    +data.waveformSamples.size()*sizeof(std::complex<int16_t>) + data.peak_ts_idx.size()*sizeof(uint64_t);
 
     size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
 
@@ -38,7 +42,8 @@ int main()
     // Create a packet buffer to store the data packet
     std::size_t packetSize = PacketUtils::DATA_PACKET_FIXED_SIZE 
         + data.peak_timestamps.size() * sizeof(double) 
-        + data.waveformSamples.size() * sizeof(std::complex<short>);
+        + data.waveformSamples.size() * sizeof(std::complex<int16_t>)
+        + data.peak_ts_idx.size() * sizeof(uint64_t);
     std:: cout << "Packet size: " << packetSize << std::endl;
     std::vector<char> dataPacketBuffer(packetSize);
     PacketUtils::createDataPacket(data, dataPacketBuffer);
@@ -82,6 +87,12 @@ int main()
     for (uint64_t timestamp :parsedData.peak_timestamps) 
     {
         std::cout << " " << timestamp;
+    }
+    std::cout << std::endl;
+    std::cout << "Peak time sample id:";
+    for(uint64_t id :parsedData.peak_ts_idx)
+    {
+        std::cout << " " << id; 
     }
     std::cout << std::endl;
 #if 0

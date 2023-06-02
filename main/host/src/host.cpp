@@ -341,6 +341,7 @@ void Client::start_streaming()
     this->pulse_start_idx_ = dsp_result.start_idx;
     this->peak_timestamp_.push_back(dsp_result.start_idx / usrp->get_rx_rate()
                                    + this->rx_stream_start_time_);
+    this->peak_ts_sid_.push_back(pulse_start_idx_);
     this->pulse_data_ = dsp_result.pulse_data;
     util::save_complex_vec_to_file_bin(this->pulse_data_, 
                                        sett::pulse_data_path, 
@@ -559,7 +560,8 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
         DataPacket data;
         data.rx_id = client_id_; //server needs to send the unique id
         data.peak_timestamps = std::move(peak_timestamp_);
-        data.numTimeSamples = data.peak_timestamps.size();
+        data.numTimeSamples  = data.peak_timestamps.size();
+        data.peak_ts_idx     = std::move(peak_ts_sid_);
 
         std::cout << "\tAdding latitide" << std::endl;
         data.latitude  = latitude_;//constants
@@ -569,7 +571,9 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
         std::cout << "\tAdding Altitude" << std::endl;
         data.altitude  =  altitude_;
         data.waveformSamples = std::move(pulse_data_);
-        header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)+data.waveformSamples.size()*sizeof(std::complex<short>);
+        header.packet_length = PacketUtils::DATA_PACKET_FIXED_SIZE+data.peak_timestamps.size()*sizeof(double)
+        +data.waveformSamples.size()*sizeof(std::complex<int16_t>)
+        +data.peak_ts_idx.size()*sizeof(uint64_t);
         std::cout << "Header packet length = " << header.packet_length << std::endl;
         
         size_t header_size = PacketUtils::HEADER_PACKET_SIZE;
@@ -581,8 +585,10 @@ void Client::create_header_data_packet(std::vector<char>& headerPacketBuffer, st
          // Create a packet buffer to store the data packet
         std::size_t packetSize = PacketUtils::DATA_PACKET_FIXED_SIZE 
         + data.peak_timestamps.size() * sizeof(double) 
-        + data.waveformSamples.size() * sizeof(std::complex<short>);
+        + data.waveformSamples.size() * sizeof(std::complex<short>)
+        + data.peak_ts_idx.size() * sizeof(uint64_t);
         dataPacketBuffer.resize(packetSize);
+        
         PacketUtils::createDataPacket(data, dataPacketBuffer);
 }
 
