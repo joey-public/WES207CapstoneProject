@@ -5,7 +5,6 @@ Go to BUILD folder:
 cmake ../
 make clean
 make
-
 ```
 ## Host Controller
 
