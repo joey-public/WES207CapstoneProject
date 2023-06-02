@@ -35,11 +35,12 @@ For full system testing with several USRPs and a host controller use:
 ./host <server IP> <PORT> <USRP IP>
 ```
   
-If you want to test with a single USRP without any networking. This can be useful for collecting data for postprocessing to test differnet dsp algorithms. 
-
+If you want to test with a single USRP without any networking: 
 ```
 ./host
 ```
+This can be useful for collecting data for postprocessing to test differnet dsp algorithms. 
+
 ### Host Settings
 
 Before running the host you can configure the settings of the usrp and processing, by modifying the  `main/settings.txt`. The available settings are listed below. 
