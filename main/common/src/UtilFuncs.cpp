@@ -40,7 +40,7 @@ std::vector<RX_DTYPE> get_subvec(const std::vector<RX_DTYPE>&in_vec,
     {
         std::cout << "invalid range of start_idx+k is too large...\n";
         start_idx = 0;
-        k = 1000;
+        k = 750000;
         std::cout << "\treturning the firs 1000 samples of vector\n";
         //return in_vec;
     }

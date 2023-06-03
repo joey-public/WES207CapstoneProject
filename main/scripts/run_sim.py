@@ -17,8 +17,11 @@ def read_float_bin_data(path:str)->np.array:
 
 def sim_dsp(file_path):
     print('Reading raw data...')
-    rx_data = read_short_bin_data(file_path)
     fs = 25e6
+    rx_data = read_short_bin_data(file_path)
+    max_time = 1.0
+    max_sz = int(fs * max_time)
+    rx_data = rx_data[0:max_sz]
     t = np.arange(0, rx_data.size/fs,1/fs) 
 #    idx0 = int(0.0* fs)
 #    idx1 = int(2.0 * fs)
