@@ -426,6 +426,8 @@ void Client::control_command_handler()
                     is_send_command_active.store(true);
                     //send_dsp_data();
                     send_dsp_data_sequentially();
+                    this->peak_ts_sid_.clear();
+                    this->peak_timestamp_.clear();
                 } 
                 else if (command == "time")
                 {

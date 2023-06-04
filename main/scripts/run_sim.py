@@ -89,45 +89,45 @@ def sim_dsp(file_path):
     plt.savefig(img_path)
 
 
-    plt.figure(2)
-    plt.plot(np.abs(processed_rx_data), label='Py Results')
-    print('Reading cpp data...')
-    cpp_proc_data = read_float_bin_data('./proc_data.bin')
-    print('Plotting cpp data...')
-    plt.plot(np.abs(cpp_proc_data), label = 'CPP results')
-    plt.legend(loc='upper right')
-    img_path = './images/processing_compare.jpeg'
-    plt.savefig(img_path)
-
-    print('Plotting spectrum of raw data...')
-    def my_fft(data):
-         return 20*np.log10(np.abs(np.fft.fftshift(np.fft.fft(data))))
-
-    plt.figure(3)
-    plt.subplot(311)
-    rx_spectrum = my_fft(rx_data)
-    freqs = fs * np.arange(-0.5, 0.5, 1/rx_spectrum.size)
-    plt.plot(freqs, rx_spectrum)
-    plt.title('Raw Data Spectrum')
-    del rx_spectrum
-    del rx_data
-    plt.subplot(312)
-    proc_spectrum = my_fft(processed_rx_data)
-    freqs = fs * np.arange(-0.5, 0.5, 1/proc_spectrum.size)
-    plt.plot(freqs, proc_spectrum)
-    plt.title('Python Processed Spectrum')
-    del proc_spectrum
-    del processed_rx_data
-    plt.subplot(313)
-    proc_cpp_spectrum = my_fft(cpp_proc_data)
-    freqs = fs * np.arange(-0.5, 0.5, 1/proc_cpp_spectrum.size)
-    plt.plot(freqs, proc_cpp_spectrum)
-    plt.title('Cpp Processed Spectrum')
-    plt.tight_layout()
-    del proc_cpp_spectrum
-    del cpp_proc_data
-    img_path = './images/spectrum_comparison.jpeg'
-    plt.savefig(img_path)
+#    plt.figure(2)
+#    plt.plot(np.abs(processed_rx_data), label='Py Results')
+#    print('Reading cpp data...')
+#    cpp_proc_data = read_float_bin_data('./proc_data.bin')
+#    print('Plotting cpp data...')
+#    plt.plot(np.abs(cpp_proc_data), label = 'CPP results')
+#    plt.legend(loc='upper right')
+#    img_path = './images/processing_compare.jpeg'
+#    plt.savefig(img_path)
+#
+#    print('Plotting spectrum of raw data...')
+#    def my_fft(data):
+#         return 20*np.log10(np.abs(np.fft.fftshift(np.fft.fft(data))))
+#
+#    plt.figure(3)
+#    plt.subplot(311)
+#    rx_spectrum = my_fft(rx_data)
+#    freqs = fs * np.arange(-0.5, 0.5, 1/rx_spectrum.size)
+#    plt.plot(freqs, rx_spectrum)
+#    plt.title('Raw Data Spectrum')
+#    del rx_spectrum
+#    del rx_data
+#    plt.subplot(312)
+#    proc_spectrum = my_fft(processed_rx_data)
+#    freqs = fs * np.arange(-0.5, 0.5, 1/proc_spectrum.size)
+#    plt.plot(freqs, proc_spectrum)
+#    plt.title('Python Processed Spectrum')
+#    del proc_spectrum
+#    del processed_rx_data
+#    plt.subplot(313)
+#    proc_cpp_spectrum = my_fft(cpp_proc_data)
+#    freqs = fs * np.arange(-0.5, 0.5, 1/proc_cpp_spectrum.size)
+#    plt.plot(freqs, proc_cpp_spectrum)
+#    plt.title('Cpp Processed Spectrum')
+#    plt.tight_layout()
+#    del proc_cpp_spectrum
+#    del cpp_proc_data
+#    img_path = './images/spectrum_comparison.jpeg'
+#    plt.savefig(img_path)
 
     
     
