@@ -89,15 +89,16 @@ def sim_dsp(file_path):
     plt.savefig(img_path)
 
 
-#    plt.figure(2)
-#    plt.plot(np.abs(processed_rx_data), label='Py Results')
-#    print('Reading cpp data...')
-#    cpp_proc_data = read_float_bin_data('./proc_data.bin')
-#    print('Plotting cpp data...')
-#    plt.plot(np.abs(cpp_proc_data), label = 'CPP results')
-#    plt.legend(loc='upper right')
-#    img_path = './images/processing_compare.jpeg'
-#    plt.savefig(img_path)
+    del rx_data
+    plt.figure(2)
+    plt.plot(np.abs(processed_rx_data), label='Py Results')
+    print('Reading cpp data...')
+    cpp_proc_data = read_float_bin_data('./proc_data.bin')
+    print('Plotting cpp data...')
+    plt.plot(np.abs(cpp_proc_data), label = 'CPP results')
+    plt.legend(loc='upper right')
+    img_path = './images/processing_compare.jpeg'
+    plt.savefig(img_path)
 #
 #    print('Plotting spectrum of raw data...')
 #    def my_fft(data):
