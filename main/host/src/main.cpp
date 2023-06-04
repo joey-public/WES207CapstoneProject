@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 
     //client.stop();
     client.control_command_thread_.join();
-    client.dsp_thread_.join();
+    //client.dsp_thread_.join();
 
 return 0;
 }

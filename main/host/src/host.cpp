@@ -431,6 +431,10 @@ void Client::control_command_handler()
                 {
                     show_time();
                 }
+                else if (command == "disconnect")
+                {
+                    stop();
+                }
                 else 
                 {
                     std::cout << "Invalid command received from server." << std::endl;
@@ -439,7 +443,19 @@ void Client::control_command_handler()
             catch(const boost::system::system_error& e)
             {
                 std::cerr << "Read until error: " << e.what() << std::endl;
-                break;
+
+                if (e.code() == boost::asio::error::bad_descriptor) 
+                {
+                    // Handle the "bad file descriptor" error here
+                    std::cerr << "Error: Bad file descriptor. Socket is closed." << std::endl;
+                    // Perform any necessary cleanup or error handling
+                } 
+                else 
+                {
+                    // Handle other types of system errors if needed
+                    std::cerr << "Error: " << e.what() << std::endl;
+                }
+                return;
             }
         }
     }

@@ -174,3 +174,34 @@ void PacketUtils::deserializeControlMessage(const std::string& serializedMessage
         message.message.emplace_back(msg.substr(0, size));
     }
 }
+
+void PacketUtils::getControlMessageString(ControlMessageCommands cmd_num, std::string& cmd_msg)
+{
+        // Convert the enum value to a string
+    std::string commandString;
+    switch (cmd_num)
+    {
+        case ControlMessageCommands_e::config:
+            commandString = "config";
+            break;
+        case ControlMessageCommands_e::sync:
+            commandString = "sync";
+            break;
+        case ControlMessageCommands_e::stream:
+            commandString = "stream";
+            break;
+        case ControlMessageCommands_e::time:
+            commandString = "time";
+            break;
+        case ControlMessageCommands_e::send:
+            commandString = "send";
+            break;
+        case ControlMessageCommands_e::powerSave:
+            commandString = "powersave";
+            break;
+        default:
+            commandString = "Invalid command";
+            break;
+    }
+    cmd_msg = commandString;
+}

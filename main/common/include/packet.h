@@ -10,9 +10,11 @@ typedef enum class ControlMessageCommands_e
     ControlMessageCommandInvalid = -1,
     config,
     sync,
+    time,
     stream,
-    sendData,
-    powerSave,
+    send,
+    powerSave,//not implemented
+    heartbeat,//not implemented
     MAXControlMessageCommand
 }ControlMessageCommands;
 
