@@ -5,7 +5,8 @@
 #include <sstream>
 
 const std::size_t PacketUtils::HEADER_PACKET_SIZE = sizeof(HeaderPacket);
-const std::size_t PacketUtils::DATA_PACKET_FIXED_SIZE = sizeof(DataPacket) - sizeof(std::vector<uint64_t>) - sizeof(std::vector<std::complex<short>>);
+const std::size_t PacketUtils::DATA_PACKET_FIXED_SIZE = sizeof(DataPacket) - sizeof(std::vector<uint64_t>)
+                                                         - sizeof(std::vector<std::complex<int16_t>>) - sizeof(std::vector<uint64_t>);
 
 std::size_t PacketUtils::getReceiverIdOffset()
 {
@@ -66,7 +67,13 @@ void PacketUtils::createDataPacket(const DataPacket& data, std::vector<char>& pa
     std::size_t waveformOffset = timestampsOffset + data.peak_timestamps.size() * sizeof(uint64_t);
 
     // Copy waveform samples to the packet buffer
-    std::memcpy(packet.data() + waveformOffset, data.waveformSamples.data(), data.waveformSamples.size() * sizeof(std::complex<short>));
+    std::memcpy(packet.data() + waveformOffset, data.waveformSamples.data(), data.waveformSamples.size() * sizeof(std::complex<int16_t>));
+
+    // Calculate the offset for peakTime samples index
+    std::size_t peak_time_offset = waveformOffset + data.waveformSamples.size() * sizeof(std::complex<int16_t>);
+
+    //Copy peak_time_sample_idx
+    std::memcpy(packet.data() + peak_time_offset, data.peak_ts_idx.data(), data.peak_ts_idx.size() * sizeof(uint64_t));
 }
 
 
@@ -84,7 +91,7 @@ void PacketUtils::parseDataPacket(const std::vector<char>& packet, DataPacket& d
 {
     if (packet.size() < DATA_PACKET_FIXED_SIZE) 
     {
-        //throw std::runtime_error("Invalid data packet size");
+        throw std::runtime_error("Invalid data packet size");
     }
 
     //std::cout << "Data Packet Size = " << DATA_PACKET_FIXED_SIZE;
@@ -92,20 +99,28 @@ void PacketUtils::parseDataPacket(const std::vector<char>& packet, DataPacket& d
 
     size_t num_peaks = data.numTimeSamples;
 
-    uint64_t timesampleSize = num_peaks * sizeof(double);
-    uint64_t waveformSamplesSize = packet.size() - DATA_PACKET_FIXED_SIZE - timesampleSize;
-    size_t   waveformSamplesCount = waveformSamplesSize / sizeof(std::complex<short>);
+    uint64_t timesampleSize         = num_peaks * sizeof(double);
+    uint64_t time_idx_Size          = num_peaks * sizeof(uint64_t);
+    uint64_t waveformSamplesSize    = packet.size() - DATA_PACKET_FIXED_SIZE - timesampleSize - time_idx_Size;
+    size_t   waveformSamplesCount   = waveformSamplesSize / sizeof(std::complex<int16_t>);
+   
     //std::cout << "time sample Size " << timesampleSize;
     //std::cout << "waveformSamplesSize " << waveformSamplesSize;
     data.peak_timestamps.resize(num_peaks);
     data.waveformSamples.resize(waveformSamplesCount);
+    data.peak_ts_idx.resize(num_peaks);
 
     const char* packetDataPtr = packet.data() + DATA_PACKET_FIXED_SIZE;
 
     std::memcpy(data.peak_timestamps.data(), packetDataPtr, timesampleSize);
     packetDataPtr += timesampleSize;
     
+
     std::memcpy(data.waveformSamples.data(), packetDataPtr, waveformSamplesSize);
+    packetDataPtr += waveformSamplesSize;
+
+    std::memcpy(data.peak_ts_idx.data(), packetDataPtr, time_idx_Size);
+
 }
 
 void PacketUtils::createControlPacket(const ControlMessage& message, std::vector<char>& packet)

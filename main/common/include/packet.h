@@ -58,6 +58,7 @@ typedef struct DataPacket_s
     uint64_t numTimeSamples;
     std::vector<double> peak_timestamps;
     std::vector<std::complex<int16_t>> waveformSamples;
+    std::vector<uint64_t> peak_ts_idx;
 } DataPacket;
 
 #endif

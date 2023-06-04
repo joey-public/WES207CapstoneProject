@@ -3,6 +3,7 @@
 #include <localization.h>
 
 #include <eigen3/Eigen/Dense>
+#include "debug.h"
 
 using namespace std;
 
@@ -15,6 +16,7 @@ MatrixXd receivers(4,3);
 
 Vector3d Localization_4Receivers_2D(double ToA1, double ToA2, double ToA3, double ToA4)
 {
+    TRACE_ENTER;
     double ToAs[4] = {ToA1, ToA2, ToA3, ToA4};
     int minidx = minimumIndex(&ToAs[0],4);
     double minval = ToAs[minidx];

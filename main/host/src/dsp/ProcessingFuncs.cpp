@@ -39,8 +39,8 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
         double thresh_time = threshold_idx / fs;
         double start_time = thresh_time - 5e-3;
         double end_time = start_time + 30e-3;
-        result.start_idx = uint64_t(start_time * fs);
-        result.end_idx = uint64_t(end_time * fs);
+        result.start_idx = uint64_t(std::ceil((start_time * fs)));
+        result.end_idx = uint64_t(std::ceil(end_time * fs));
         std::cout << "\tThreshold found at idx = " << threshold_idx << 
                      ", t = "<< thresh_time << std::endl;
         std::cout << "\tpulse starts at idx = " << result.start_idx << 
