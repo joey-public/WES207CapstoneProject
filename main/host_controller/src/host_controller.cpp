@@ -1,7 +1,7 @@
 #include "host_controller.h"
 
 //uint32_t Server:: num_max_supported_client = sett::hostc_max_clients;
-const uint32_t Server:: num_max_supported_client = 1;
+const uint32_t Server:: num_max_supported_client = 4;
 
 Server::Server(boost::asio::io_context& io_context, const std::string& addr, const std::string& port_num): 
 acceptor_(io_context), 
@@ -242,25 +242,53 @@ void Server::run_localization()
 			client_buffers_[2].pop();
 			client_buffers_[3].pop();
 		}
-		
-		std::vector<RX_DTYPE> s0 = p0.waveformSamples;
-		std::vector<RX_DTYPE> s1 = p1.waveformSamples;
-		std::vector<RX_DTYPE> s2 = p2.waveformSamples;
-		std::vector<RX_DTYPE> s3 = p3.waveformSamples;
+		std::vector<RX_DTYPE> s0 = std::move(p0.waveformSamples);
+		std::vector<RX_DTYPE> s1 = std::move(p1.waveformSamples);
+		std::vector<RX_DTYPE> s2 = std::move(p2.waveformSamples);
+		std::vector<RX_DTYPE> s3 = std::move(p3.waveformSamples);// length check
+        
+        uint64_t length_s0 = s0.size();
+        std::cout << "S0 size = "<<length_s0 << std::endl;
+        uint64_t length_s1 = s1.size();
+        std::cout << "S1 size = " <<length_s1 << std::endl;
+        uint64_t length_s2 = s2.size();
+        std::cout << "S2 size = "<<length_s2 << std::endl;
+        uint64_t length_s3 = s3.size();
+        std::cout << "S3 size = "<<length_s3 << std::endl;
+
+        //check all length are equal
+        if(length_s0 != length_s1 || length_s0 != length_s2 || length_s0 != length_s3)
+        {
+            TRACE_ENTER;
+            std::cout << "Data not same s0" << std::endl;
+            return;
+        }
+        if(length_s1 != length_s2 || length_s1 != length_s3)
+        {
+            TRACE_ENTER;
+            std::cout << "Data not same s1" << std::endl;
+            return;
+        }
+        if(length_s2 != length_s3)
+        {
+            TRACE_ENTER;
+            std::cout << "Data not same s2" << std::endl;
+            return;
+        }
 		
 		int i0 = (int) p0.peak_ts_idx.at(0);
 		int i1 = (int) p1.peak_ts_idx.at(0);
 		int i2 = (int) p2.peak_ts_idx.at(0);
 		int i3 = (int) p3.peak_ts_idx.at(0);
-		
-		std::vector<double> TDoAs = CalculateTDoAs(s0,s1,s2,s3,i0,i1,i2,i3,25000000);
-	    
 
+		std::vector<double> TDoAs = CalculateTDoAs(s0,s1,s2,s3,i0,i1,i2,i3,25000000);
+        std::cout << TDoAs.at(0) << ";" << TDoAs.at(1) << ";" << TDoAs.at(2) << ";" << TDoAs.at(3) <<std::endl;
+	
 		//loc_est = Localization_4Receivers_2D(TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3));
 		
 		double tmax = std::max({TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3)});
 		double tmin = std::min({TDoAs.at(0),TDoAs.at(1),TDoAs.at(2),TDoAs.at(3)});
-			
+        
 		//if time difference is too large, something went wrong and data will be meaningless
 		//so only perform localization if time difference is small
 		if(tmax - tmin < 0.5)
@@ -606,21 +634,13 @@ void Server::send_receive_sequentially(std::string& command)
         {
             std::cerr << "Error while receiving data packet from client: " << pair.first << " - " << e.what() << std::endl;
         }
-        std::cout << "Recieved Data Packet: " << std::endl;
-        std::cout << "\trx_id: " << dataPacket.rx_id << std::endl;
-        std::cout << "\tlong: " << dataPacket.longitude << std::endl;
-        std::cout << "\tlat: " << dataPacket.latitude << std::endl;
-        std::cout << "\talt: " << dataPacket.altitude << std::endl;
-        std::cout << "\tNum Time Stamps: " << dataPacket.numTimeSamples << std::endl;
-        std::cout << "\tpulse idx: " << header->pkt_ts << std::endl;
-        std::cout << "\tpeak timestamps: " << dataPacket.peak_timestamps[0] << std::endl;
-        std::cout << "\twaveform samples len: " << dataPacket.waveformSamples.size() << std::endl;
-        std::cout << "\tSaving Pulse data to txt file\n";
-        //std::string data_file_path = "./pulse_data.txt"; 
-        //util::save_complex_vec_to_file(dataPacket.waveformSamples, data_file_path);
-        sett::update_settings_from_file();
+
+        std::string id;
+        id = std::to_string(dataPacket.rx_id);
+        std::string file_path =  "./pulse_data_"+id+".bin";
+
         util::save_complex_vec_to_file_bin(dataPacket.waveformSamples, 
-                                           sett::pulse_data_path, 
+                                          file_path, 
                                            sett::save_pulse_data);
     }
 

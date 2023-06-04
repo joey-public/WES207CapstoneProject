@@ -5,6 +5,7 @@
 #include <vector>
 #include <eigen3/Eigen/Dense>
 #include "TypeDefs.h"
+#include "debug.h"
 
 using Eigen::Vector3d;
 using Eigen::RowVector3d;
@@ -83,9 +84,11 @@ Vector3d Localization_4Receivers_2D(double ToA1, double ToA2, double ToA3, doubl
     return loc_est;
 }
 
+
 std::vector<double> CalculateTDoAs(std::vector<RX_DTYPE>& data1, std::vector<RX_DTYPE>& data2, std::vector<RX_DTYPE>& data3, std::vector<RX_DTYPE>& data4,
 	int startIdx1,int startIdx2, int startIdx3, int startIdx4, int sampleRate)
 {
+    TRACE_ENTER;
 	int startIndexes[4] = {startIdx1, startIdx2, startIdx3, startIdx4};
 	int lags[4] = {0,0,0,0};
 	int sampleOfArrival[4] = {startIdx1, startIdx2, startIdx3, startIdx4};
@@ -103,7 +106,7 @@ std::vector<double> CalculateTDoAs(std::vector<RX_DTYPE>& data1, std::vector<RX_
         		lags[i] = CrossCorrelate(*signalData[minidx],*signalData[i],length);
         		sampleOfArrival[i] = startIndexes[i] - lags[i];
         	}
-    	}
+    }
     	//std::cout << "Lags: " << std::endl << lags[0] << std::endl << lags[1]  << std::endl << lags[2]  << std::endl << lags[3]  << std::endl;
     	
     	minidx = minimumIndexInt(&sampleOfArrival[0],4);
