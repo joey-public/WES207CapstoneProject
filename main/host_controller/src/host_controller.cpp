@@ -261,19 +261,22 @@ void Server::run_localization()
         {
             TRACE_ENTER;
             std::cout << "Data not same s0" << std::endl;
-            return;
+            start_localization_.store(false);
+            continue;
         }
         if(length_s1 != length_s2 || length_s1 != length_s3)
         {
             TRACE_ENTER;
             std::cout << "Data not same s1" << std::endl;
-            return;
+            start_localization_.store(false);
+            continue;
         }
         if(length_s2 != length_s3)
         {
             TRACE_ENTER;
             std::cout << "Data not same s2" << std::endl;
-            return;
+            start_localization_.store(false);
+            continue;
         }
 		
 		int i0 = (int) p0.peak_ts_idx.at(0);
