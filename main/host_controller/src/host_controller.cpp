@@ -74,7 +74,7 @@ void Server::handle_accept(std::shared_ptr<boost::asio::ip::tcp::socket> socket,
 
 void Server::send_control_command(uint64_t client_id, std::string command)
 {
-    std::cout << "Sending control command "" << command << "" to client " << client_id << std::endl;
+    std::cout << "Sending control command " << command << " to client " << client_id << std::endl;
     boost::asio::write(*sockets_[client_id], boost::asio::buffer(command + "\n"));
 }
 
@@ -154,7 +154,7 @@ void Server::disconnect_client(uint64_t client_id)
     std::cout << "Disconnecting client " << client_id << std::endl;
     {
         boost::unique_lock<boost::mutex> lock(sockets_mutex_);
-        sockets_[client_id]->close();
+        //sockets_[client_id]->close();
         sockets_.erase(client_id);
     }
 }
@@ -261,19 +261,22 @@ void Server::run_localization()
         {
             TRACE_ENTER;
             std::cout << "Data not same s0" << std::endl;
-            return;
+            start_localization_.store(false);
+            continue;
         }
         if(length_s1 != length_s2 || length_s1 != length_s3)
         {
             TRACE_ENTER;
             std::cout << "Data not same s1" << std::endl;
-            return;
+            start_localization_.store(false);
+            continue;
         }
         if(length_s2 != length_s3)
         {
             TRACE_ENTER;
             std::cout << "Data not same s2" << std::endl;
-            return;
+            start_localization_.store(false);
+            continue;
         }
 		
 		int i0 = (int) p0.peak_ts_idx.at(0);

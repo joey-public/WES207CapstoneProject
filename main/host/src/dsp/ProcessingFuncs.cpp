@@ -13,10 +13,10 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
     float max_val = fir_complex(sett::fir_coeffs, data_buff, proc_data);
     std::cout << "\tFiltering done...max val = " << max_val << std::endl;
     std::cout << "\tNormalizing proc_data by " << max_val << std::endl;
-    divide_vec_by_scalar(proc_data, max_val);
+//    divide_vec_by_scalar(proc_data, max_val);
     std::cout << "\tTaking Magnitude" << std::endl;
     std::cout << "\tProc Data Size "<< proc_data.size() << std::endl;
-    std::vector<float> mag_data = calc_mag(proc_data);
+    std::vector<float> mag_data = calc_mag_and_norm(proc_data, max_val);
     
     util::save_complex_float_vec_to_file_bin(proc_data, 
                                              sett::proc_data_path,
@@ -32,21 +32,24 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs)
     {
         std::cout << "\tNO THRESHOLD DETECTED" << std::endl;
         result.start_idx = 0;
-        result.end_idx = fs * 30e3;
+        result.end_idx = std::ceil(fs * 30e3);
     }
     else
     {
         double thresh_time = threshold_idx / fs;
         double start_time = thresh_time - 5e-3;
-        double end_time = start_time + 30e-3;
+        uint64_t pulse_size = std::ceil(sett::proc_pulse_save_time * fs);
+        double end_time = start_time + sett::proc_pulse_save_time;
         result.start_idx = uint64_t(std::ceil((start_time * fs)));
-        result.end_idx = uint64_t(std::ceil(end_time * fs));
+        result.end_idx = result.start_idx+pulse_size;
+        //result.end_idx = uint64_t(std::ceil(end_time * fs));
         std::cout << "\tThreshold found at idx = " << threshold_idx << 
                      ", t = "<< thresh_time << std::endl;
         std::cout << "\tpulse starts at idx = " << result.start_idx << 
                      ", t = " << start_time << std::endl;
         std::cout << "\tpulse ends at idx = " << result.end_idx << 
                      ", t = " << end_time << std::endl;
+        std::cout << "\tpulse size = " << pulse_size << std::endl;
         std::cout << "Done Processing Data..." << std::endl;
     }
     result.pulse_data = util::get_subvec(data_buff, 
@@ -63,7 +66,18 @@ std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector)
     std::vector<float> magnitudes;
     magnitudes.reserve(complexVector.size());
     for (const auto& complexNumber : complexVector) {
-        SAMP_DTYPE magnitude = std::abs(complexNumber);
+        float magnitude = std::abs(complexNumber);
+        magnitudes.push_back(magnitude);
+    }
+    return magnitudes;
+}
+
+std::vector<float> calc_mag_and_norm(std::vector<std::complex<float>>& complexVector, float max_val) 
+{
+    std::vector<float> magnitudes;
+    magnitudes.reserve(complexVector.size());
+    for (const auto& complexNumber : complexVector) {
+        float magnitude = std::abs(complexNumber) / max_val;
         magnitudes.push_back(magnitude);
     }
     return magnitudes;

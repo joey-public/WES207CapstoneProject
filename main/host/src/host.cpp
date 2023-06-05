@@ -426,10 +426,16 @@ void Client::control_command_handler()
                     is_send_command_active.store(true);
                     //send_dsp_data();
                     send_dsp_data_sequentially();
+                    this->peak_ts_sid_.clear();
+                    this->peak_timestamp_.clear();
                 } 
                 else if (command == "time")
                 {
                     show_time();
+                }
+                else if (command == "disconnect")
+                {
+                    stop();
                 }
                 else 
                 {
@@ -439,7 +445,19 @@ void Client::control_command_handler()
             catch(const boost::system::system_error& e)
             {
                 std::cerr << "Read until error: " << e.what() << std::endl;
-                break;
+
+                if (e.code() == boost::asio::error::bad_descriptor) 
+                {
+                    // Handle the "bad file descriptor" error here
+                    std::cerr << "Error: Bad file descriptor. Socket is closed." << std::endl;
+                    // Perform any necessary cleanup or error handling
+                } 
+                else 
+                {
+                    // Handle other types of system errors if needed
+                    std::cerr << "Error: " << e.what() << std::endl;
+                }
+                return;
             }
         }
     }

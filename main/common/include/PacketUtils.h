@@ -25,6 +25,7 @@ public:
     static void createDataPacket(const DataPacket& data, std::vector<char>& packet);
     static const HeaderPacket& parseHeaderPacket(const std::vector<char>& packet);
     static void parseDataPacket(const std::vector<char>& packet, DataPacket& data);
+    static void getControlMessageString(ControlMessageCommands cmd_num, std::string& cmd_msg);
    // static std::string controlMessageToString(ControlMessageCommands message);
    // static ControlMessageCommands stringToControlMessage(const std::string& messageStr);
 private:

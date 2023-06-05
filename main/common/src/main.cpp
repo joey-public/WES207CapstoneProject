@@ -95,7 +95,7 @@ int main()
         std::cout << " " << id; 
     }
     std::cout << std::endl;
-#if 0
+
     // Create control packet
     ControlMessage cm;
     cm.rx_id = 1;
@@ -120,6 +120,6 @@ int main()
     {
         std::cout << msg<<std::endl;
     }
-#endif
+    
     return 0;
 }

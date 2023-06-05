@@ -27,6 +27,7 @@ dsp_struct process_data(std::vector<RX_DTYPE> &data_buff, double fs);
 
 //std::vector<SAMP_DTYPE> calc_mag(std::vector<RX_DTYPE>& complexVector);
 std::vector<float> calc_mag(std::vector<std::complex<float>>& complexVector); 
+std::vector<float> calc_mag_and_norm(std::vector<std::complex<float>>& complexVector, float max_val);
 
 //std::vector<SAMP_DTYPE> calc_phase(std::vector<RX_DTYPE>& complexVector);
 std::vector<float> calc_phase(std::vector<std::complex<float>>& complexVector);
