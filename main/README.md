@@ -2,6 +2,8 @@
 
 Go to BUILD folder:
 ```
+mkdir build
+cd build
 cmake ../
 make clean
 make
