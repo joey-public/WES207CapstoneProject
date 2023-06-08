@@ -7,7 +7,7 @@ make clean
 make
 ```
 ## Host Controller
-
+Note: The Boost version on which io-context works is 1.71. io-service has been deprecated. So, the host/hostcontroller code has been tested on Ubuntu 18.04 and Ubunutu 20.04, make sure,to have boost version 1.71 or above.
 ### Usage
 
 ```
@@ -15,15 +15,21 @@ make
 ```
 
 ### Host Controller Commands
+Note: Host controller uses async broadcast to send control messages but sequentially reads data from all hosts. 
 
 After running the host controller you should wait for all the hosts to connect. Once all hosts connect to the system you should see the following statement in your terminal:
 
-Then you can move onto using the different host_controller commands to control the syte. The commands are run in the following order
+Once all clients are connected host controller issues following commands
 1) `config`: configure USRP
-2) `sync`: Sunchronizes to PPS, assumption, PPS is available
+2) `sync`: Synchronizes to GPS, assumption, GPS lock is available
+3) `time`: See host and compare all timing.
 3) `stream`: streams and stores data to file
-4) `stop`: Currently NOP
-5) `disconnect` : Close client.
+4) `send`:  accumulates data from all host
+5) `disconnect` : (internal command) Close client.
+The console would ask at the end whether to continue with localization or not, if entered no, disconnect call is made.
+
+### Limitation: 
+1) Currently host_controller uses timing sleep. The code present in common folder has support to create/parse the control message response from host. Host controller need more coding to enable ack/nack read after each control message command and move on to next control message but this has not been coded. Reason: Timing constraints and major priority was to enable host send all data to controller for localization thread
 
 ## Host
 
@@ -32,7 +38,7 @@ Then you can move onto using the different host_controller commands to control t
 For full system testing with several USRPs and a host controller use:
   
 ```
-./host <server IP> <PORT> <USRP IP>
+./host <server IP> <PORT> 
 ```
   
 If you want to test with a single USRP without any networking: 
@@ -88,6 +94,8 @@ The pulse data file size will be ${proc_pulse_save_time} \times {usrp_sample_rat
 
 The proc data stores the results of the signal processing done withing the cpp applicaiton. This can be usefule for verification when testing new/differnt dsp algorithms for pulse detection. The proc_data file size will be rx_stream_time * usrp_sample_rate * sizeof(std::complex<float>). Note is takes 64 bits for a complex float so the proc_data will be 2 times the size of the raw data if you decide to save it.  
 
+## Common
 
+Common folder contains PacketUtils. This class helps in creating/parsing header packets, dataPackets, Control message Header/response. Main.cpp placed in the folder tests all functions.
 
 
