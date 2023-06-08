@@ -150,7 +150,6 @@ xlim([-fs/2 fs/2])
 % ylabel("Amplitude")
 
 %filter design
-%HW_2 Problem 1 a
 
 %Filter specifications:
 

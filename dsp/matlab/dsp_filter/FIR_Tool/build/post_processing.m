@@ -1,7 +1,8 @@
 clc;
 close all;
 clear all;
-
+%Download data from Google Drive for the script to work
+%https://drive.google.com/drive/folders/1xOBHKqa7txcgBovVi-ar4vuvSNH4SdP2?usp=drive_link
 fs = 25e6;
 
 complex_data = load("filtered_data.mat");
