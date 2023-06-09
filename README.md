@@ -8,7 +8,7 @@ The project uses Boost::asio for Socket Programming.
 - [Vinit Saah](https://github.com/VinitSaah)
 - [Joey Schnecker](https://github.com/joey-public)
 - [Ryan Margraf](https://github.com/rmargraf142)
-- Hassan Ahmad
+- [Hassan Ahmad](https://github.com/khahmad95)
 
 ## Folder Structure
 - `docs/`: Contains project documentation, including any reports or presentations. Moreover, all the other documentation, how to related project code and scripts.
